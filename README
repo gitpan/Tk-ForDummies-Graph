@@ -1,7 +1,7 @@
 Tk-ForDummies-Graph
 
-This is Tk::ForDummies::Graph, a package to generate charts.
-See the documentation for some history and more information.
+This is Tk::ForDummies::Graph, a package to generate charts lines, pie and bars.
+See the documentation for histories and more informations.
 
 
 INSTALLATION
@@ -25,7 +25,10 @@ SUPPORT AND DOCUMENTATION
 After installing, you can find documentation for this module with the
 perldoc command.
 
+    perldoc Tk::ForDummies::Graph
     perldoc Tk::ForDummies::Graph::Lines
+    perldoc Tk::ForDummies::Graph::Bars
+    perldoc Tk::ForDummies::Graph::Pie
 
 You can also look for information at:
 
