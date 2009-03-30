@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 30/03/2009
+# Update    : 31/03/2009
 # AIM       : Private functions for Dummies Graph modules
 #==================================================================
 use strict;
@@ -11,7 +11,7 @@ use warnings;
 use Carp;
 use Tk::ForDummies::Graph::Utils qw (:DUMMIES);
 use vars qw($VERSION);
-$VERSION = '1.02';
+$VERSION = '1.03';
 
 use Exporter;
 
@@ -404,6 +404,11 @@ its entry will be turn to a color to help identify it.
 L<Tk::ForDummies::Graph::Lines>
 
     Extension of Canvas widget to create a line chart. 
+    With this module it is possible to plot quantitative variables according to qualitative variables.
+
+L<Tk::ForDummies::Graph::Areas>
+
+    Extension of Canvas widget to create a area line chart. 
     With this module it is possible to plot quantitative variables according to qualitative variables.
 
 L<Tk::ForDummies::Graph::Bars>

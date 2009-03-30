@@ -1,6 +1,6 @@
 ---
 name: Tk-ForDummies-Graph
-version: 1.02
+version: 1.03
 author:
   - 'Djibril Ousmanou <djibrilo@yahoo.fr>'
 abstract: Extension of Canvas widget to create a graph like GDGraph.
@@ -14,7 +14,7 @@ meta-spec:
 provides:
   Tk::ForDummies::Graph:
     file: lib/Tk/ForDummies/Graph.pm
-    version: 1.02
+    version: 1.03
   Tk::ForDummies::Graph::Areas:
     file: lib/Tk/ForDummies/Graph/Areas.pm
     version: 1.00
