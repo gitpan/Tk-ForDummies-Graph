@@ -2,6 +2,7 @@
   use strict;
   use warnings;
   use Tk;
+use lib 'Z:/djibril/Perso/Programmation/perl/COMPILATION/Tk-ForDummies-Graph/lib';
   use Tk::ForDummies::Graph::Pie;
   my $mw = new MainWindow( -title => 'Tk::ForDummies::Graph::Pie example', );
 

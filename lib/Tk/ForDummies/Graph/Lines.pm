@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 27/03/2009
+# Update    : 30/03/2009
 # AIM       : Create line chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.00';
+$VERSION = '1.01';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -92,6 +92,7 @@ sub Populate {
     -boxaxis      => [ 'PASSIVE', 'Boxaxis',      'BoxAxis',      0 ],
     -noaxis       => [ 'PASSIVE', 'Noaxis',       'NoAxis',       0 ],
     -zeroaxisonly => [ 'PASSIVE', 'Zeroaxisonly', 'ZeroAxisOnly', 0 ],
+    -zeroaxis => [ 'PASSIVE', 'Zeroaxis', 'ZeroAxis', 0 ],
     -gridview     => [ 'PASSIVE', 'Gridview',     'GridView',     0 ],
 
     -xtickheight => [
@@ -133,24 +134,6 @@ sub Populate {
     '<Configure>' => [ \&_GraphForDummiesConstruction ] );
 }
 
-sub _DestroyBalloonAndBind {
-  my ($CompositeWidget) = @_;
-
-  # balloon defined and user want to stop it
-  if ( defined $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}
-    and $CompositeWidget->{RefInfoDummies}->{Balloon}{State} == 0 )
-  {
-    $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}
-      ->configure( -state => 'none' );
-    $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}
-      ->detach($CompositeWidget);
-    $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}->destroy;
-
-    undef $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj};
-  }
-
-  return;
-}
 
 sub _Balloon {
   my ($CompositeWidget) = @_;
@@ -1192,6 +1175,14 @@ sub _GraphForDummiesConstruction {
     $CompositeWidget->delete(
       $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis} );
   }
+  if (  $CompositeWidget->cget( -zeroaxis ) == 1 ) {
+    $CompositeWidget->delete(
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis0} );
+    $CompositeWidget->delete(
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{xTick} );
+    $CompositeWidget->delete(
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{xValues} );
+  }
 
   # ticks
   my $alltickview = $CompositeWidget->cget( -alltickview );
@@ -1775,6 +1766,21 @@ Default : B<1>
 Hide the axis with ticks and values ticks.
  
  -noaxis => 1, # 0 or 1
+
+Default : B<0>
+
+=item Name:	B<Zeroaxis>
+
+=item Class:	B<ZeroAxis>
+
+=item Switch:	B<-zeroaxis>
+
+If set to a true value, the axis for y values of 0 will always be drawn. 
+This might be useful in case your graph contains negative values, 
+but you want it to be clear where the zero value is. 
+(see also zeroaxisonly and boxaxis).
+
+ -zeroaxis => 1, # 0 or 1
 
 Default : B<0>
 

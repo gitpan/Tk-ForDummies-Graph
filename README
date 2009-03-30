@@ -28,6 +28,7 @@ perldoc command.
     perldoc Tk::ForDummies::Graph
     perldoc Tk::ForDummies::Graph::Lines
     perldoc Tk::ForDummies::Graph::Bars
+    perldoc Tk::ForDummies::Graph::Areas
     perldoc Tk::ForDummies::Graph::Pie
 
 You can also look for information at:

@@ -12,7 +12,7 @@ use Carp;
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.00';
+$VERSION = '1.01';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -48,6 +48,7 @@ sub Populate {
     ],
 
     -linewidth => [ 'PASSIVE', 'Linewidth', 'LineWidth', 2 ],
+    -startangle => [ 'PASSIVE', 'Startangle', 'StartAngle', 0 ],
     -colordata => [
       'PASSIVE',   'Colordata',
       'ColorData', $CompositeWidget->{RefInfoDummies}->{Legend}{Colors}
@@ -59,10 +60,12 @@ sub Populate {
 
 }
 
+
 sub _GraphPie {
   my ($CompositeWidget) = @_;
 
   $CompositeWidget->clearchart;
+
 
   # Height and Width canvas
   $CompositeWidget->{RefInfoDummies}->{Canvas}{Width} = $CompositeWidget->width;
@@ -73,13 +76,7 @@ sub _GraphPie {
   $CompositeWidget->{RefInfoDummies}->{Pie}{Width}
     = $CompositeWidget->{RefInfoDummies}->{Canvas}{Width}
     - ( 2 * $CompositeWidget->{RefInfoDummies}->{Canvas}{WidthEmptySpace} );
-
-  $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}
-    = $CompositeWidget->Balloon(
-    -statusbar  => $CompositeWidget,
-    -background => $CompositeWidget->{RefInfoDummies}->{Balloon}{Background},
-    );
-
+  
   if ( $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} ) {
     $CompositeWidget->_title;
     $CompositeWidget->_ViewData;
@@ -254,7 +251,7 @@ sub _ViewData {
   $CompositeWidget->{RefInfoDummies}->{Pie}{DegreeOneValue} = 360 / $Somme;
 
   # pie
-  my ( $degrees, $start ) = ( 0, 0 );
+  my ( $degrees, $start ) = ( 0, $CompositeWidget->cget(-startangle ) );
   my $IndiceColor = 0;
   my $IndexLegend = 0;
   for
@@ -281,7 +278,7 @@ sub _ViewData {
       $CompositeWidget->{RefInfoDummies}->{Pie}{y2},
       -extent => $degrees,
       -fill   => $Color,
-      -start  => $start,
+      -start  => $start, 
       -tags   => [$tag],
       -width  => $CompositeWidget->cget( -linewidth ),
     );
@@ -293,6 +290,7 @@ sub _ViewData {
     $start += $degrees;
     $IndiceColor++;
     $IndexLegend++;
+    
   }
 
   return 1;
@@ -526,11 +524,19 @@ sub _ViewLegend {
   }
 
   #Balloon
-  $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}->attach(
-    $CompositeWidget,
-    -balloonposition => 'mouse',
-    -msg             => \%MsgBalloon,
-  );
+  unless ( defined $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj} ) {
+    $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}
+      = $CompositeWidget->Balloon(
+      -statusbar  => $CompositeWidget,
+      -background => $CompositeWidget->{RefInfoDummies}->{Balloon}{Background},
+      );
+  
+    $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}->attach(
+      $CompositeWidget,
+      -balloonposition => 'mouse',
+      -msg             => \%MsgBalloon,
+    ); 
+  }
 
   return;
 }
@@ -646,7 +652,7 @@ Default : B<40>
 
 =item Switch:	B<-linewidth>
 
-Set width of all lines graph of dataset.
+Set width of all lines slice pie inthe chart.
  
  -linewidth => 10,
 
@@ -672,6 +678,18 @@ Default :
 
 The default array contain 24 colors. If you have more than 24 samples, the next line 
 will have the color of the first array case (red).
+
+=item Name:	B<Startangle>
+
+=item Class:	B<StartAngle>
+
+=item Switch:	B<-startangle>
+
+The angle at which the first data slice will be displayed, with 0 degrees being "3 o'clock".
+
+ -startangle => 90,
+
+Default : B<0>
 
 =back
 

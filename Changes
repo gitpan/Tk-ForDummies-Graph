@@ -1,6 +1,11 @@
 Revision history for Tk-ForDummies-Graph
 
-1.00    24/03/2009 First version for CPAN.
+1.03    31/03/2009 Tk::ForDummies::Graph::Areas added.
 
+1.02    30/03/2009 Tk::ForDummies::Graph::Pie updated.
+  option -startangle have been addes
+  
 1.01    30/03/2009 Change Read me.
+
+1.00    24/03/2009 First version for CPAN.
 

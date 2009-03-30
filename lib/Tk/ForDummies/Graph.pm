@@ -11,13 +11,13 @@ use warnings;
 use Carp;
 use Tk::ForDummies::Graph::Utils qw (:DUMMIES);
 use vars qw($VERSION);
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 use Exporter;
 
 my @ModuleToExport = qw (
   _TreatParameters         _InitConfig _error
-  _CheckSizeLengendAndData _ZoomCalcul
+  _CheckSizeLengendAndData _ZoomCalcul _DestroyBalloonAndBind
 );
 
 our @ISA         = qw(Exporter);
@@ -166,11 +166,13 @@ sub _TreatParameters {
   my $xvaluesregex  = $CompositeWidget->cget( -xvaluesregex );
   my $Colors        = $CompositeWidget->cget( -colordata );
   my @IntegerOption = qw /
-    -xlabelheight -xlabelskip -xvaluespace
-    -ylabelwidth -boxaxis -noaxis -zeroaxisonly -xtickheight -xtickview
-    -yticknumber -ytickwidth -linewidth -alltickview
-    -xvaluevertical -titleheight -gridview -ytickview
-    -overwrite -cumulate -spacingbar -showvalues
+    -xlabelheight -xlabelskip     -xvaluespace  -ylabelwidth 
+    -boxaxis      -noaxis         -zeroaxisonly -xtickheight    
+    -xtickview    -yticknumber    -ytickwidth   -linewidth 
+    -alltickview  -xvaluevertical -titleheight  -gridview 
+    -ytickview    -overwrite      -cumulate     -spacingbar 
+    -showvalues   -startangle     -viewsection  -zeroaxis
+    
     /;
 
   foreach my $OptionName (@IntegerOption) {
@@ -272,6 +274,11 @@ sub _TreatParameters {
     $CompositeWidget->configure( -xlabelfont => $textfont );
     $CompositeWidget->configure( -ylabelfont => $textfont );
   }
+  if ( my $startangle = $CompositeWidget->cget( -startangle ) ) {
+    if ( $startangle < 0 or $startangle > 360 ) {
+      $CompositeWidget->configure( -startangle  => 0 );
+    }
+  }
 
 =for borderwidth:
   If user call -borderwidth option, the chart will be trunc.
@@ -341,6 +348,21 @@ sub _ZoomCalcul {
     if ( defined $ZoomY );
 
   return ( $NewWidth, $NewHeight );
+}
+
+sub _DestroyBalloonAndBind {
+  my ($CompositeWidget) = @_;
+
+  # balloon defined and user want to stop it
+  if ( $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj} and Tk::Exists $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj} ) {
+    $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}->configure( -state => 'none' );
+    $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}->detach($CompositeWidget);
+    #$CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}->destroy;
+
+    undef $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj};
+  }
+
+  return;
 }
 
 sub _error {
