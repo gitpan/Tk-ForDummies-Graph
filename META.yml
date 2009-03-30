@@ -1,0 +1,31 @@
+---
+name: Tk-ForDummies-Graph
+version: 1.00
+author:
+  - 'Djibril Ousmanou <djibrilo@yahoo.fr>'
+abstract: Extension of Canvas widget to create a graph like GDGraph.
+license: perl
+build_requires:
+  Test::More: 0
+generated_by: Module::Build version 0.31012
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2
+provides:
+  Tk::ForDummies::Graph:
+    file: lib/Tk/ForDummies/Graph.pm
+    version: 1.00
+  Tk::ForDummies::Graph::Bars:
+    file: lib/Tk/ForDummies/Graph/Bars.pm
+    version: 1.00
+  Tk::ForDummies::Graph::Lines:
+    file: lib/Tk/ForDummies/Graph/Lines.pm
+    version: 1.00
+  Tk::ForDummies::Graph::Pie:
+    file: lib/Tk/ForDummies/Graph/Pie.pm
+    version: 1.00
+  Tk::ForDummies::Graph::Utils:
+    file: lib/Tk/ForDummies/Graph/Utils.pm
+    version: 1.00
+resources:
+  license: ~

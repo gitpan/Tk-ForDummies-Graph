@@ -1,0 +1,8 @@
+<SOFTPKG NAME="Tk-ForDummies-Graph" VERSION="1,00,0,0">
+    <TITLE>Tk-ForDummies-Graph</TITLE>
+    <ABSTRACT>Extension of Canvas widget to create a graph like GDGraph.</ABSTRACT>
+    <AUTHOR>Djibril Ousmanou &lt;djibrilo@yahoo.fr&gt;</AUTHOR>
+    <IMPLEMENTATION>
+        <CODEBASE HREF="PPM-Tk-ForDummies-Graph-1.00.tar.gz" />
+    </IMPLEMENTATION>
+</SOFTPKG>
