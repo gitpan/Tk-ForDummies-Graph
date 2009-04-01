@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 30/03/2009
+# Update    : 01/04/2009 15:36:45
 # AIM       : Create area chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.00';
+$VERSION = '1.01';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -92,8 +92,7 @@ sub Populate {
     -boxaxis      => [ 'PASSIVE', 'Boxaxis',      'BoxAxis',      0 ],
     -noaxis       => [ 'PASSIVE', 'Noaxis',       'NoAxis',       0 ],
     -zeroaxisonly => [ 'PASSIVE', 'Zeroaxisonly', 'ZeroAxisOnly', 0 ],
-    -zeroaxis => [ 'PASSIVE', 'Zeroaxis', 'ZeroAxis', 1 ],
-    -gridview     => [ 'PASSIVE', 'Gridview',     'GridView',     0 ],
+    -zeroaxis     => [ 'PASSIVE', 'Zeroaxis',     'ZeroAxis',     1 ],
 
     -xtickheight => [
       'PASSIVE', 'Xtickheight', 'XTickHeight',
@@ -127,14 +126,13 @@ sub Populate {
       'PASSIVE',   'Colordata',
       'ColorData', $CompositeWidget->{RefInfoDummies}->{Legend}{Colors}
     ],
-    -viewsection => [ 'PASSIVE', 'Viewsection', 'ViewSection', 1 ], 
+    -viewsection => [ 'PASSIVE', 'Viewsection', 'ViewSection', 1 ],
   );
 
   $CompositeWidget->Delegates( DEFAULT => $CompositeWidget, );
   $CompositeWidget->Tk::bind(
     '<Configure>' => [ \&_GraphForDummiesConstruction ] );
 }
-
 
 sub _Balloon {
   my ($CompositeWidget) = @_;
@@ -214,6 +212,12 @@ sub _Balloon {
       sub {
         $CompositeWidget->itemconfigure( $LineTag,
           -fill => $CompositeWidget->{RefInfoDummies}{Line}{$LineTag}{color}, );
+        
+        # Allow dash line to display
+        $CompositeWidget->itemconfigure( $CompositeWidget->{RefInfoDummies}->{TAGS}{DashLines}, 
+          -fill => "black", 
+        );
+          
       }
     );
   }
@@ -738,7 +742,7 @@ sub _axis {
       $CompositeWidget->{RefInfoDummies}->{Axis}{CxMax},
       $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0},
       -tags => [
-        $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis0}, 
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis0},
         $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS}
       ],
     );
@@ -837,7 +841,7 @@ sub _xtick {
       $CompositeWidget->createLine(
         $Xtickx1, $Xticky1, $Xtickx2, $Xticky2,
         -tags => [
-          $CompositeWidget->{RefInfoDummies}->{TAGS}{xTick}, 
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{xTick},
           $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick}
         ],
       );
@@ -968,6 +972,7 @@ sub _ViewData {
 
   my $legendmarkercolors = $CompositeWidget->cget( -colordata );
   my $viewsection        = $CompositeWidget->cget( -viewsection );
+
   # number of value for x axis
   $CompositeWidget->{RefInfoDummies}->{Data}{xtickNumber}
     = $CompositeWidget->{RefInfoDummies}->{Data}{NumberXValues};
@@ -977,7 +982,6 @@ sub _ViewData {
     = $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width}
     / ( $CompositeWidget->{RefInfoDummies}->{Data}{xtickNumber} + 1 );
 
-    
   my $IdData     = 0;
   my $IndexColor = 0;
   foreach my $RefArrayData (
@@ -990,12 +994,13 @@ sub _ViewData {
     my $NumberData = 1;    # Number of data
     my @PointsData;        # coordinate x and y
     my @DashPointsxLines;
+
     # First point, in x axis
-    my $Fisrtx = $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0} 
+    my $Fisrtx = $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
       + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick};
     my $Fisrty = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0};
     push( @PointsData, ( $Fisrtx, $Fisrty ) );
-    
+
     foreach my $data ( @{$RefArrayData} ) {
       unless ( defined $data ) {
         $NumberData++;
@@ -1013,21 +1018,20 @@ sub _ViewData {
         $data * $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit} );
 
       push( @PointsData, ( $x, $y ) );
-      
-      push (@DashPointsxLines, $x, $y);
+
+      push( @DashPointsxLines, $x, $y );
       $NumberData++;
-      
+
     }
 
     # Last point, in x axis
-    my $Lastx = 
-        $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
-        + ($NumberData -1)
-        * $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick};
+    my $Lastx
+      = $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
+      + ( $NumberData - 1 )
+      * $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick};
 
     my $Lastty = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0};
     push( @PointsData, ( $Lastx, $Lastty ) );
-    
 
     my $LineColor = $legendmarkercolors->[$IndexColor];
     unless ( defined $LineColor ) {
@@ -1038,28 +1042,32 @@ sub _ViewData {
 
     $CompositeWidget->createPolygon(
       @PointsData,
-      -fill  => $LineColor,
-      -tags  => [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
-      -width => $CompositeWidget->cget( -linewidth ),
+      -fill    => $LineColor,
+      -tags    => [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+      -width   => $CompositeWidget->cget( -linewidth ),
       -outline => "black",
     );
-    
+
     # display Dash line
     if ( defined $viewsection and $viewsection == 1 ) {
-      for ( my $i = 0; $i < scalar(@DashPointsxLines); $i ++) {
+      for ( my $i = 0; $i < scalar(@DashPointsxLines); $i++ ) {
         my $IndexX1 = $i;
         my $IndexY1 = $i + 1;
         my $IndexX2 = $i;
-       $CompositeWidget->createLine(
-          $DashPointsxLines[$IndexX1], $DashPointsxLines[$IndexY1], 
-          $DashPointsxLines[$IndexX2], $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0}, 
-          -dash  => ".",
-          -tags  => [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+        $CompositeWidget->createLine(
+          $DashPointsxLines[$IndexX1], $DashPointsxLines[$IndexY1],
+          $DashPointsxLines[$IndexX2],
+          $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0},
+          -dash => ".",
+          -tags =>
+            [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData},
+              $CompositeWidget->{RefInfoDummies}->{TAGS}{DashLines},
+             ],
         );
-        $i ++;
+        $i++;
       }
     }
-    
+
     $CompositeWidget->{RefInfoDummies}{Line}{$tag}{color} = $LineColor;
 
     $IdData++;
@@ -1214,7 +1222,7 @@ sub _GraphForDummiesConstruction {
     $CompositeWidget->delete(
       $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis} );
   }
-  if (  $CompositeWidget->cget( -zeroaxis ) == 1 ) {
+  if ( $CompositeWidget->cget( -zeroaxis ) == 1 ) {
     $CompositeWidget->delete(
       $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis0} );
     $CompositeWidget->delete(
@@ -1222,7 +1230,6 @@ sub _GraphForDummiesConstruction {
     $CompositeWidget->delete(
       $CompositeWidget->{RefInfoDummies}->{TAGS}{xValues} );
   }
-    
 
   # ticks
   my $alltickview = $CompositeWidget->cget( -alltickview );
@@ -1530,7 +1537,7 @@ Default : B<1>
 
 =back
 
-=head1 WIDGET-SPECIFIC OPTIONS like Tk::ForDummies::Graph::Lines
+=head1 WIDGET-SPECIFIC OPTIONS like Tk::ForDummies::Graph::Areas
 
 Many options allow you to configure your chart as you want. 
 The default configuration have already OK, but you can change it.
@@ -1988,7 +1995,7 @@ Your chart will be updade.
 I<Data array reference>
 
 Fill an array of arrays with the values of the datasets (I<\@data>). 
-Make sure that every array has the same size, otherwise Tk::ForDummies::Graph::Lines 
+Make sure that every array has the same size, otherwise Tk::ForDummies::Graph::Areas 
 will complain and refuse to compile the graph.
 
  my @NewData = (1,10,12,5,4);
@@ -2047,7 +2054,7 @@ To display your chart the first time, plot the chart by using this method.
 I<\@data>
 
 Fill an array of arrays with the x values and the values of the datasets (I<\@data>). 
-Make sure that every array have the same size, otherwise Tk::ForDummies::Graph::Lines 
+Make sure that every array have the same size, otherwise Tk::ForDummies::Graph::Areas 
 will complain and refuse to compile the graph.
 
  my @data = (
@@ -2095,7 +2102,7 @@ Default : B<0>
 Redraw the chart. 
 
 If you have used clearchart for any reason, it is possible to redraw the chart.
-Tk::ForDummies::Graph::Lines supports the configure and cget methods described in the L<Tk::options> manpage.
+Tk::ForDummies::Graph::Areas supports the configure and cget methods described in the L<Tk::options> manpage.
 If you use configure method to change a widget specific option, the modification will not be display. 
 if the chart was already displayed and if you not resize the widget, call B<redraw> method to 
 resolv the bug.
@@ -2308,178 +2315,11 @@ Please report any bugs or feature requests to C<bug-Tk-ForDummies-Graph at rt.cp
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Tk-ForDummies-Graph>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-=head1 EXAMPLES
-
-No legend
-
-  #!/usr/bin/perl
-  use strict;
-  use warnings;
-  use Tk;
-  use Tk::ForDummies::Graph::Bars;
-  
-  my $mw = new MainWindow(
-    -title      => 'Tk::ForDummies::Graph::Bars No legend',
-    -background => 'white',
-  );
-  
-  my $GraphDummies = $mw->Bars(
-    -title  => 'My chart title - no legend',
-    -xlabel => 'X Label',
-    -ylabel => 'Y Label',
-  )->pack(qw / -fill both -expand 1 /);
-  
-  my @data = (
-    [ '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th' ],
-    [ 4,     0,     16,    2,     3,     5.5,   7,     5,     02 ],
-    [ 1,     2,     4,     6,     3,     17.5,  1,     20,    10 ]
-  );
-  
-  # Create the chart
-  $GraphDummies->plot( \@data );
-  
-  MainLoop();
-
-
-Just negative values
-
-  #!/usr/bin/perl
-  use strict;
-  use warnings;
-  use Tk;
-  use Tk::ForDummies::Graph::Lines;
-
-  my $mw = new MainWindow(
-    -title      => 'Tk::ForDummies::Graph::Lines example - negative values',
-    -background => 'white',
-  );
-
-  my $GraphDummies = $mw->Lines(
-    -title        => 'My chart title',
-    -xlabel       => 'X Label',
-    -ylabel       => 'Y Label',
-    -zeroaxisonly => 1,
-  )->pack(qw / -fill both -expand 1 /);
-
-  my @data = (
-    [ '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th' ],
-    [ 4,     -4,    -16,   -2,    -3,    -5.5,  -7,    -5,    -2 ],
-    [ -1,    -2,    -4,    -6,    -3,    -17.5, -1,    -20,   -10 ]
-  );
-
-  # Create the chart
-  $GraphDummies->plot( \@data );
-  
-  MainLoop();
-
-Create a zoom Menu with the chart.
-
-  #!/usr/bin/perl
-  use strict;
-  use warnings;
-  use Tk;
-  use Tk::ForDummies::Graph::Lines;
-
-  my $mw = new MainWindow(
-    -title => 'Tk::ForDummies::Graph::Lines example with legend and zoom menu',
-    -background => 'white',
-  );
-
-  my $GraphDummies = $mw->Lines(
-    -title      => 'My chart title',
-    -xlabel     => 'X Label',
-    -ylabel     => 'Y Label',
-    -linewidth  => 2,
-    -background => 'white',
-  )->pack(qw / -fill both -expand 1 /);
-
-  my @data = (
-    [ '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th' ],
-    [ 1,     2,     5,     -6,    3,     1.5,   1,     3,     4 ],
-    [ 4,     0,     16,    2,     3,     5.5,   7,     5,     02 ],
-    [ 1,     2,     4,     6,     3,     17.5,  1,     20,    10 ]
-  );
-
-  # Add a legend to our chart
-  my @Legends = ( 'legend 1', 'legend 2', 'legend 3' );
-  $GraphDummies->set_legend(
-    -title       => "Title legend",
-    -data        => \@Legends,
-    -titlecolors => "blue",
-  );
-
-  # I can see the legend text when mouse pass on line and
-  # the line change color when mouse pass on legend text
-  $GraphDummies->set_balloon();
-
-  # Create the chart
-  $GraphDummies->plot( \@data );
-
-  $GraphDummies->add_data( [ 1 .. 9 ], 'legend  4' );
-
-  my $menu = Menu( $GraphDummies, [qw/30 50 80 100 150 200/] );
-
-  MainLoop();
-
-  sub CanvasMenu {
-    my ( $Canvas, $x, $y, $CanvasMenu ) = @_;
-    $CanvasMenu->post( $x, $y );
-
-    return;
-  }
-
-  sub Menu {
-    my ( $GraphDummies, $RefData ) = @_;
-    my %MenuConfig = (
-      -tearoff    => 0,
-      -takefocus  => 1,
-      -background => "white",
-      -menuitems  => [],
-    );
-    my $Menu = $GraphDummies->Menu(%MenuConfig);
-    $Menu->add( "cascade", -label => 'Zoom' );
-    $Menu->add( "cascade", -label => 'Zoom X-axis' );
-    $Menu->add( "cascade", -label => 'Zoom Y-axis' );
-
-    my $SsMenuZoomX = $Menu->Menu(%MenuConfig);
-    my $SsMenuZoomY = $Menu->Menu(%MenuConfig);
-    my $SsMenuZoom  = $Menu->Menu(%MenuConfig);
-
-    for my $Zoom ( @{$RefData} ) {
-      $SsMenuZoom->add(
-        "command",
-        -label   => "$Zoom \%",
-        -command => sub { $GraphDummies->zoom($Zoom); }
-      );
-      $SsMenuZoomX->add(
-        "command",
-        -label   => "$Zoom \%",
-        -command => sub { $GraphDummies->zoomx($Zoom); }
-      );
-      $SsMenuZoomY->add(
-        "command",
-        -label   => "$Zoom \%",
-        -command => sub { $GraphDummies->zoomy($Zoom); }
-      );
-
-    }
-
-    $Menu->entryconfigure( 'Zoom X-axis', -menu => $SsMenuZoomX );
-    $Menu->entryconfigure( 'Zoom Y-axis', -menu => $SsMenuZoomY );
-    $Menu->entryconfigure( 'Zoom',        -menu => $SsMenuZoom );
-
-    $GraphDummies->Tk::bind( '<ButtonPress-3>',
-      [ \&CanvasMenu, Ev("X"), Ev("Y"), $Menu, $GraphDummies ] );
-
-    return $Menu;
-  }
-
-
 =head1 SEE ALSO
 
 See L<Tk::Canvas> for details of the standard options.
 
-See L<Tk::ForDummies::Graph>, L<GD::Graph>, L<Tk::Graph>, L<Tk::LineGraph>, L<Tk::PlotDataset>.
+See L<Tk::ForDummies::Graph>, L<GD::Graph>.
 
 =head1 SUPPORT
 
@@ -2509,9 +2349,6 @@ L<http://cpanratings.perl.org/d/Tk-ForDummies-Graph>
 L<http://search.cpan.org/dist/Tk-ForDummies-Graph/>
 
 =back
-
-
-=head1 ACKNOWLEDGEMENTS
 
 
 =head1 COPYRIGHT & LICENSE

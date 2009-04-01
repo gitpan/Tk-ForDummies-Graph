@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 31/03/2009
+# Update    : 01/04/2009 18:36:04
 # AIM       : Private functions for Dummies Graph modules
 #==================================================================
 use strict;
@@ -11,7 +11,7 @@ use warnings;
 use Carp;
 use Tk::ForDummies::Graph::Utils qw (:DUMMIES);
 use vars qw($VERSION);
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 use Exporter;
 
@@ -138,10 +138,12 @@ sub _InitConfig {
       BoxLegend   => 'BoxLegendTag',
       AllData     => 'AllDataTag',
       AllPie      => 'AllPieTag',
-      Pie         => '_PieTag',          # id_PieTag
-      Line        => '_LineTag',         # id_LineTag
-      Bar         => '_BarTag',          # id_LineTag
-      Legend      => '_LegendTag',       # id_LegendTag
+      Pie         => '_PieTag',         
+      Line        => '_LineTag',        
+      Bar         => '_BarTag',          
+      Legend      => '_LegendTag',      
+      DashLines   => '_DashLineTag',  
+      BarValues   => '_BarValuesTag',    
     },
     'Title' => {
       Ctitrex  => undef,
@@ -166,13 +168,13 @@ sub _TreatParameters {
   my $xvaluesregex  = $CompositeWidget->cget( -xvaluesregex );
   my $Colors        = $CompositeWidget->cget( -colordata );
   my @IntegerOption = qw /
-    -xlabelheight -xlabelskip     -xvaluespace  -ylabelwidth 
-    -boxaxis      -noaxis         -zeroaxisonly -xtickheight    
-    -xtickview    -yticknumber    -ytickwidth   -linewidth 
-    -alltickview  -xvaluevertical -titleheight  -gridview 
-    -ytickview    -overwrite      -cumulate     -spacingbar 
+    -xlabelheight -xlabelskip     -xvaluespace  -ylabelwidth
+    -boxaxis      -noaxis         -zeroaxisonly -xtickheight
+    -xtickview    -yticknumber    -ytickwidth   -linewidth
+    -alltickview  -xvaluevertical -titleheight  -gridview
+    -ytickview    -overwrite      -cumulate     -spacingbar
     -showvalues   -startangle     -viewsection  -zeroaxis
-    
+    -longticks
     /;
 
   foreach my $OptionName (@IntegerOption) {
@@ -276,7 +278,12 @@ sub _TreatParameters {
   }
   if ( my $startangle = $CompositeWidget->cget( -startangle ) ) {
     if ( $startangle < 0 or $startangle > 360 ) {
-      $CompositeWidget->configure( -startangle  => 0 );
+      $CompositeWidget->configure( -startangle => 0 );
+    }
+  }
+  if ( my $longticks = $CompositeWidget->cget( -longticks ) ) {
+    if ( $longticks == 1 ) {
+      $CompositeWidget->configure( -boxaxis => 1 );
     }
   }
 
@@ -354,9 +361,14 @@ sub _DestroyBalloonAndBind {
   my ($CompositeWidget) = @_;
 
   # balloon defined and user want to stop it
-  if ( $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj} and Tk::Exists $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj} ) {
-    $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}->configure( -state => 'none' );
-    $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}->detach($CompositeWidget);
+  if ( $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}
+    and Tk::Exists $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj} )
+  {
+    $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}
+      ->configure( -state => 'none' );
+    $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}
+      ->detach($CompositeWidget);
+
     #$CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}->destroy;
 
     undef $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj};
@@ -396,25 +408,25 @@ B<Tk::ForDummies::Graph> is a module to create and display charts on a Tk widget
 The module is written entirely in Perl/Tk.
 
 You can change the color, font of title, labels (x and y) of charts.
-You can set an interactive legend. The axes can be automatically scaled or set by the code. 
+You can set an interactive legend. The axes can be automatically scaled or set by the code.
 
 When the mouse cursor passes over a plotted line, bars ou pie or its entry in the legend, 
 its entry will be turn to a color to help identify it. 
 
+You can use 3 methods to zoom (vertically, horizontally or both).
+
 L<Tk::ForDummies::Graph::Lines>
 
-    Extension of Canvas widget to create a line chart. 
+    Extension of Canvas widget to create lines chart. 
     With this module it is possible to plot quantitative variables according to qualitative variables.
 
 L<Tk::ForDummies::Graph::Areas>
 
-    Extension of Canvas widget to create a area line chart. 
-    With this module it is possible to plot quantitative variables according to qualitative variables.
+    Extension of Canvas widget to create a area lines chart. 
 
 L<Tk::ForDummies::Graph::Bars>
 
-    Extension of Canvas widget to create a bar chart with vertical bars.
-    With this module it is possible to plot quantitative variables according to qualitative variables.
+    Extension of Canvas widget to create bars chart with vertical bars.
 
 L<Tk::ForDummies::Graph::Pie>
 
@@ -423,6 +435,10 @@ L<Tk::ForDummies::Graph::Pie>
 =head1 EXAMPLES
 
 See the samples directory in the distribution, and read documentations for each modules Tk::ForDummies::Graph::ModuleName.
+
+=head1 SEE ALSO
+
+See L<GD::Graph>, L<Tk::Graph>, L<Tk::LineGraph>, L<Tk::PlotDataset>, L<Chart::Plot::Canvas>.
 
 =head1 AUTHOR
 
@@ -440,6 +456,10 @@ automatically be notified of progress on your bug as I make changes.
 You can find documentation for this module with the perldoc command.
 
     perldoc Tk::ForDummies::Graph
+    perldoc Tk::ForDummies::Graph::Lines
+    perldoc Tk::ForDummies::Graph::Bars
+    perldoc Tk::ForDummies::Graph::Areas
+    perldoc Tk::ForDummies::Graph::Pie
 
 
 You can also look for information at:
@@ -463,10 +483,6 @@ L<http://cpanratings.perl.org/d/Tk-ForDummies-Graph>
 L<http://search.cpan.org/dist/Tk-ForDummies-Graph/>
 
 =back
-
-
-=head1 ACKNOWLEDGEMENTS
-
 
 =head1 COPYRIGHT & LICENSE
 

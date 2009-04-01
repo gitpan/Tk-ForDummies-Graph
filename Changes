@@ -1,5 +1,7 @@
 Revision history for Tk-ForDummies-Graph
 
+1.04    01/04/2009 Fix bug installation, pod documentations and script bugs.
+
 1.03    31/03/2009 Tk::ForDummies::Graph::Areas added.
 
 1.02    30/03/2009 Tk::ForDummies::Graph::Pie updated.

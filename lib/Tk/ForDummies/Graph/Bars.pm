@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 30/03/2009
+# Update    : 01/04/2009 18:54:07
 # AIM       : Create bars chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -91,8 +91,8 @@ sub Populate {
     -boxaxis      => [ 'PASSIVE', 'Boxaxis',      'BoxAxis',      0 ],
     -noaxis       => [ 'PASSIVE', 'Noaxis',       'NoAxis',       0 ],
     -zeroaxisonly => [ 'PASSIVE', 'Zeroaxisonly', 'ZeroAxisOnly', 0 ],
-    -zeroaxis => [ 'PASSIVE', 'Zeroaxis', 'ZeroAxis', 0 ],
-    -gridview     => [ 'PASSIVE', 'Gridview',     'GridView',     0 ],
+    -zeroaxis     => [ 'PASSIVE', 'Zeroaxis',     'ZeroAxis',     0 ],
+    -longticks => [ 'PASSIVE', 'Longticks', 'LongTicks', 0 ],
 
     -xtickheight => [
       'PASSIVE', 'Xtickheight', 'XTickHeight',
@@ -216,6 +216,11 @@ sub _Balloon {
       sub {
         $CompositeWidget->itemconfigure( $BarTag,
           -fill => $CompositeWidget->{RefInfoDummies}{Bar}{$BarTag}{color}, );
+
+        # Allow value bar to display
+        $CompositeWidget->itemconfigure( $CompositeWidget->{RefInfoDummies}->{TAGS}{BarValues}, 
+          -fill => 'black', 
+        );
       }
     );
   }
@@ -808,6 +813,7 @@ sub _xtick {
   my ($CompositeWidget) = @_;
 
   my $xvaluecolor = $CompositeWidget->cget( -xvaluecolor );
+  my $longticks    = $CompositeWidget->cget( -longticks );
 
   # x coordinates y ticks on bottom x axis
   my $Xtickx1 = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMin};
@@ -861,6 +867,13 @@ sub _xtick {
 
     if ( $data =~ m{$RegexXtickselect} ) {
       next unless ( defined $IndiceToSkip{$Indice} );
+      
+      # Long tick
+      if ( defined $longticks and $longticks == 1 ) {
+        $Xticky1 = $CompositeWidget->{RefInfoDummies}->{Axis}{CyMax};
+        $Xticky2 = $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin};
+      }
+      
       $CompositeWidget->createLine(
         $Xtickx1, $Xticky1, $Xtickx2, $Xticky2,
         -tags => [
@@ -889,6 +902,7 @@ sub _xtick {
 sub _ytick {
   my ($CompositeWidget) = @_;
 
+  my $longticks    = $CompositeWidget->cget( -longticks );  
   $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{TickNumber}
     = $CompositeWidget->cget( -yticknumber );
 
@@ -927,6 +941,13 @@ sub _ytick {
     if ( $Value > 1000000 or length $Value > 7 ) {
       $Value = _roundValue($Value);
     }
+
+    # Long tick
+    if ( defined $longticks and $longticks == 1 ) {
+      $Ytickx1 = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMin};
+      $Ytickx2 = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMax};
+    }
+
     $CompositeWidget->createLine(
       $Ytickx1, $Yticky1, $Ytickx2, $Yticky2,
       -tags => [
@@ -977,17 +998,20 @@ sub _ytick {
     ],
   );
 
-  $CompositeWidget->createLine(
-    $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0},
-    $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin} - $Space,
-    $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
-      - $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{TickWidth},
-    $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin} - $Space,
-    -tags => [
-      $CompositeWidget->{RefInfoDummies}->{TAGS}{yTick},
-      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick}
-    ],
-  );
+    # Long tick
+    unless ( defined $longticks and $longticks == 1 ) {
+      $CompositeWidget->createLine(
+        $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0},
+        $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin} - $Space,
+        $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
+          - $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{TickWidth},
+        $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin} - $Space,
+        -tags => [
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{yTick},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick}
+        ],
+      );
+    }
 
   return;
 }
@@ -1120,12 +1144,11 @@ sub _ViewData {
           $x0 + ( $x - $x0 ) / 2, $y - 8,
           -text => $data,
           -font => $CompositeWidget->{RefInfoDummies}->{Font}{DefaultBarValues},
+          -tags  => [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{BarValues} ],
         );
       }
 
       $CompositeWidget->{RefInfoDummies}{Bar}{$tag}{color} = $LineColor;
-      $CompositeWidget->{RefInfoDummies}{Bar}{$tag}{value} = $data;
-
       $NumberData++;
     }
 
@@ -1300,7 +1323,7 @@ sub _GraphForDummiesConstruction {
     $CompositeWidget->delete(
       $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis} );
   }
-  if (  $CompositeWidget->cget( -zeroaxis ) == 1 ) {
+  if ( $CompositeWidget->cget( -zeroaxis ) == 1 ) {
     $CompositeWidget->delete(
       $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis0} );
     $CompositeWidget->delete(
@@ -1523,14 +1546,13 @@ sub set_balloon {
 
 }
 
-
 1;
 __END__
 
 
 =head1 NAME
 
-Tk::ForDummies::Graph::Lines - Extension of Canvas widget to create a line chart like GDGraph. 
+Tk::ForDummies::Graph::Bars - Extension of Canvas widget to create a bars chart. 
 
 =head1 SYNOPSIS
 
@@ -1576,16 +1598,17 @@ Tk::ForDummies::Graph::Lines - Extension of Canvas widget to create a line chart
 
 =head1 DESCRIPTION
 
-Tk::ForDummies::Graph::Lines is an extension of the Canvas widget. It is an easy way to build an 
-interactive line graph into your Perl Tk widget. The module is written entirely in Perl/Tk.
+Tk::ForDummies::Graph::Bars is an extension of the Canvas widget. It is an easy way to build an 
+interactive bar chart into your Perl Tk widget. The module is written entirely in Perl/Tk.
 
 You can change the color, font of title, labels (x and y) of the chart.
 You can set an interactive legend.  
 The axes can be automatically scaled or set by the code. 
-With this module it is possible to plot quantitative variables according to qualitative variables.
 
 When the mouse cursor passes over a plotted line or its entry in the legend, 
 the line and its entry will be turn to a color (that you can change) to help identify it. 
+
+You can use 3 methods to zoom (vertically, horizontally or both).
 
 =head1 STANDARD OPTIONS
 
@@ -1661,11 +1684,11 @@ Default : B<1>
 
 =back
 
-=head1 WIDGET-SPECIFIC OPTIONS like Tk::ForDummies::Graph::Lines
+=head1 WIDGET-SPECIFIC OPTIONS like Tk::ForDummies::Graph::Bars
 
 Many options allow you to configure your chart as you want. 
 The default configuration have already OK, but you can change it.
-It is the same option as L<Tk::ForDummies::Graph::Lines> module
+It is the same option as L<Tk::ForDummies::Graph::Bars> module
 
 =over 4
 
@@ -1936,6 +1959,18 @@ Set the font of x, y labels and title text. It combines titlefont, xlabelfont an
 
 Default : B<undef>
 
+=item Name:	B<Longticks>
+
+=item Class:	B<LongTicks>
+
+=item Switch:	B<-longticks>
+
+If long_ticks is a true value, ticks will be drawn the same length as the axes.
+ 
+ -longticks => 1, #  0 or 1
+
+Default : B<0>
+
 
 =item Name:	B<Boxaxis>
 
@@ -2123,7 +2158,7 @@ Your chart will be updade.
 I<Data array reference>
 
 Fill an array of arrays with the values of the datasets (I<\@data>). 
-Make sure that every array has the same size, otherwise Tk::ForDummies::Graph::Lines 
+Make sure that every array has the same size, otherwise Tk::ForDummies::Graph::Bars 
 will complain and refuse to compile the graph.
 
  my @NewData = (1,10,12,5,4);
@@ -2182,7 +2217,7 @@ To display your chart the first time, plot the chart by using this method.
 I<\@data>
 
 Fill an array of arrays with the x values and the values of the datasets (I<\@data>). 
-Make sure that every array have the same size, otherwise Tk::ForDummies::Graph::Lines 
+Make sure that every array have the same size, otherwise Tk::ForDummies::Graph::Bars 
 will complain and refuse to compile the graph.
 
  my @data = (
@@ -2220,7 +2255,7 @@ Default : B<0>
  );
   # mistake, -- and NA will be replace by 12
 
--substitutionvalue have to be a real number (Eg : 12, .25, 02.25, 5.2e+11, etc ...) 
+-substitutionvalue have to be a real number (Eg : 12, .25, 02.25, 5.2e+11, ...) 
   
 
 =back
@@ -2230,7 +2265,7 @@ Default : B<0>
 Redraw the chart. 
 
 If you have used clearchart for any reason, it is possible to redraw the chart.
-Tk::ForDummies::Graph::Lines supports the configure and cget methods described in the L<Tk::options> manpage.
+Tk::ForDummies::Graph::Bars supports the configure and cget methods described in the L<Tk::options> manpage.
 If you use configure method to change a widget specific option, the modification will not be display. 
 if the chart was already displayed and if you not resize the widget, call B<redraw> method to 
 resolv the bug.
@@ -2627,7 +2662,7 @@ No spacingbar and show values
 
 See L<Tk::Canvas> for details of the standard options.
 
-See L<Tk::ForDummies::Graph>, L<GD::Graph>, L<Tk::Graph>, L<Tk::LineGraph>, L<Tk::PlotDataset>.
+See L<Tk::ForDummies::Graph>, L<GD::Graph>, L<Tk::Graph>.
 
 =head1 SUPPORT
 
@@ -2657,9 +2692,6 @@ L<http://cpanratings.perl.org/d/Tk-ForDummies-Graph>
 L<http://search.cpan.org/dist/Tk-ForDummies-Graph/>
 
 =back
-
-
-=head1 ACKNOWLEDGEMENTS
 
 
 =head1 COPYRIGHT & LICENSE

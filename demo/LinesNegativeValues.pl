@@ -24,5 +24,5 @@
 
   # Create the chart
   $GraphDummies->plot( \@data );
-  
+
   MainLoop();

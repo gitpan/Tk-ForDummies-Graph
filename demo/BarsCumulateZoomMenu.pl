@@ -16,11 +16,12 @@
     -linewidth    => 2,
     -zeroaxisonly => 1,
     -cumulate     => 1,
+    -showvalues   => 1,
   )->pack(qw / -fill both -expand 1 /);
 
   my @data = (
     [ '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th' ],
-    [ 1,     2,     5,     6,    3,     1.5,   1,     3,     4 ],
+    [ 1,     2,     5,     6,     3,     1.5,   1,     3,     4 ],
     [ 4,     0,     16,    2,     3,     5.5,   7,     5,     02 ],
     [ 1,     2,     4,     6,     3,     17.5,  1,     20,    10 ]
   );
@@ -33,8 +34,8 @@
     -titlecolors => "blue",
   );
 
-  # I can see the legend text when mouse pass on line and
-  # the line change color when mouse pass on legend text
+  # I can see the legend text when mouse pass on bars and
+  # the bars change color when mouse pass on legend text
   $GraphDummies->set_balloon();
 
   # Create the chart

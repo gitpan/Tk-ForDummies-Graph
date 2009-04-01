@@ -48,9 +48,9 @@ TODO: {
     "placeholder date/time"       => qr(Date/time)
   );
 
-  module_boilerplate_ok('lib\Tk\ForDummies\Graph.pm');
-  module_boilerplate_ok('lib\Tk\ForDummies\Graph\Lines.pm');
-  module_boilerplate_ok('lib\Tk\ForDummies\Graph\Pie.pm');
+  module_boilerplate_ok('lib/Tk/ForDummies/Graph.pm');
+  module_boilerplate_ok('lib/Tk/ForDummies/Graph/Lines.pm');
+  module_boilerplate_ok('lib/Tk/ForDummies/Graph/Pie.pm');
 
 
 }

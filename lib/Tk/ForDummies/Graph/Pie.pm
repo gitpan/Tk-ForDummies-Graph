@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 30/03/2009
+# Update    : 01/04/2009 14:01:52
 # AIM       : Create pie chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -47,9 +47,9 @@ sub Populate {
       'Height', $CompositeWidget->{RefInfoDummies}->{Canvas}{Height}
     ],
 
-    -linewidth => [ 'PASSIVE', 'Linewidth', 'LineWidth', 2 ],
+    -linewidth  => [ 'PASSIVE', 'Linewidth',  'LineWidth',  2 ],
     -startangle => [ 'PASSIVE', 'Startangle', 'StartAngle', 0 ],
-    -colordata => [
+    -colordata  => [
       'PASSIVE',   'Colordata',
       'ColorData', $CompositeWidget->{RefInfoDummies}->{Legend}{Colors}
     ],
@@ -60,12 +60,10 @@ sub Populate {
 
 }
 
-
 sub _GraphPie {
   my ($CompositeWidget) = @_;
 
   $CompositeWidget->clearchart;
-
 
   # Height and Width canvas
   $CompositeWidget->{RefInfoDummies}->{Canvas}{Width} = $CompositeWidget->width;
@@ -76,7 +74,7 @@ sub _GraphPie {
   $CompositeWidget->{RefInfoDummies}->{Pie}{Width}
     = $CompositeWidget->{RefInfoDummies}->{Canvas}{Width}
     - ( 2 * $CompositeWidget->{RefInfoDummies}->{Canvas}{WidthEmptySpace} );
-  
+
   if ( $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} ) {
     $CompositeWidget->_title;
     $CompositeWidget->_ViewData;
@@ -251,7 +249,7 @@ sub _ViewData {
   $CompositeWidget->{RefInfoDummies}->{Pie}{DegreeOneValue} = 360 / $Somme;
 
   # pie
-  my ( $degrees, $start ) = ( 0, $CompositeWidget->cget(-startangle ) );
+  my ( $degrees, $start ) = ( 0, $CompositeWidget->cget( -startangle ) );
   my $IndiceColor = 0;
   my $IndexLegend = 0;
   for
@@ -278,7 +276,7 @@ sub _ViewData {
       $CompositeWidget->{RefInfoDummies}->{Pie}{y2},
       -extent => $degrees,
       -fill   => $Color,
-      -start  => $start, 
+      -start  => $start,
       -tags   => [$tag],
       -width  => $CompositeWidget->cget( -linewidth ),
     );
@@ -290,7 +288,7 @@ sub _ViewData {
     $start += $degrees;
     $IndiceColor++;
     $IndexLegend++;
-    
+
   }
 
   return 1;
@@ -530,12 +528,12 @@ sub _ViewLegend {
       -statusbar  => $CompositeWidget,
       -background => $CompositeWidget->{RefInfoDummies}->{Balloon}{Background},
       );
-  
+
     $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}->attach(
       $CompositeWidget,
       -balloonposition => 'mouse',
       -msg             => \%MsgBalloon,
-    ); 
+    );
   }
 
   return;
@@ -556,6 +554,8 @@ interactive pie graph into your Perl Tk widget. The module is written entirely i
 
 When the mouse cursor passes over a pieslice or its entry in the legend, 
 the pieslice turn to a color (that you can change) and a balloon box display to help identify it. 
+
+You can use 3 methods to zoom (vertically, horizontally or both).
 
 =head1 SYNOPSIS
 
@@ -801,6 +801,7 @@ zoom the chart (vertical and horizontal zoom).
 $PieGraphDummies->zoom(I<$zoom>);
 
 $zoom must be an integer great than 0.
+
  Ex : 300*300 size
  $PieGraphDummies->zoom(50); # size divide by 2 => 150*150
  ...
@@ -845,9 +846,6 @@ Please report any bugs or feature requests to C<bug-tk-fordummies-graph at rt.cp
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Tk-ForDummies-Graph>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-
-
-
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
@@ -876,10 +874,6 @@ L<http://cpanratings.perl.org/d/Tk-ForDummies-Graph>
 L<http://search.cpan.org/dist/Tk-ForDummies-Graph/>
 
 =back
-
-
-=head1 ACKNOWLEDGEMENTS
-
 
 =head1 COPYRIGHT & LICENSE
 

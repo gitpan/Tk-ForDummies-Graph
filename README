@@ -20,6 +20,15 @@ Alternatively, to install with Module::Build, you can use the following commands
 	./Build test
 	./Build install
 
+DEPENDANCIES
+
+    Tk::ForDummies::Graph needs Tk installed
+   
+- On Debian, you can install Tk via CPAN or apt-get
+
+  apt-get install perl-tk
+
+
 SUPPORT AND DOCUMENTATION
 
 After installing, you can find documentation for this module with the

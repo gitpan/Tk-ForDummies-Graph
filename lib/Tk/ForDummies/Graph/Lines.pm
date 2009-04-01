@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 30/03/2009
+# Update    : 01/04/2009 13:56:41
 # AIM       : Create line chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -92,8 +92,8 @@ sub Populate {
     -boxaxis      => [ 'PASSIVE', 'Boxaxis',      'BoxAxis',      0 ],
     -noaxis       => [ 'PASSIVE', 'Noaxis',       'NoAxis',       0 ],
     -zeroaxisonly => [ 'PASSIVE', 'Zeroaxisonly', 'ZeroAxisOnly', 0 ],
-    -zeroaxis => [ 'PASSIVE', 'Zeroaxis', 'ZeroAxis', 0 ],
-    -gridview     => [ 'PASSIVE', 'Gridview',     'GridView',     0 ],
+    -zeroaxis     => [ 'PASSIVE', 'Zeroaxis',     'ZeroAxis',     0 ],
+    -longticks => [ 'PASSIVE', 'Longticks', 'LongTicks', 0 ],
 
     -xtickheight => [
       'PASSIVE', 'Xtickheight', 'XTickHeight',
@@ -133,7 +133,6 @@ sub Populate {
   $CompositeWidget->Tk::bind(
     '<Configure>' => [ \&_GraphForDummiesConstruction ] );
 }
-
 
 sub _Balloon {
   my ($CompositeWidget) = @_;
@@ -781,6 +780,7 @@ sub _xtick {
   my ($CompositeWidget) = @_;
 
   my $xvaluecolor = $CompositeWidget->cget( -xvaluecolor );
+  my $longticks    = $CompositeWidget->cget( -longticks );
 
   # x coordinates y ticks on bottom x axis
   my $Xtickx1 = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMin};
@@ -833,6 +833,13 @@ sub _xtick {
 
     if ( $data =~ m{$RegexXtickselect} ) {
       next unless ( defined $IndiceToSkip{$Indice} );
+
+      # Long tick
+      if ( defined $longticks and $longticks == 1 ) {
+        $Xticky1 = $CompositeWidget->{RefInfoDummies}->{Axis}{CyMax};
+        $Xticky2 = $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin};
+      }
+
       $CompositeWidget->createLine(
         $Xtickx1, $Xticky1, $Xtickx2, $Xticky2,
         -tags => [
@@ -859,6 +866,7 @@ sub _xtick {
 sub _ytick {
   my ($CompositeWidget) = @_;
 
+  my $longticks    = $CompositeWidget->cget( -longticks );
   $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{TickNumber}
     = $CompositeWidget->cget( -yticknumber );
 
@@ -892,6 +900,12 @@ sub _ytick {
     my $Value   = $UnitValue * $TickNumber
       + $CompositeWidget->{RefInfoDummies}->{Data}{MinYValue};
     next if ( $Value == 0 );
+
+    # Long tick
+    if ( defined $longticks and $longticks == 1 ) {
+      $Ytickx1 = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMin};
+      $Ytickx2 = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMax};
+    }
 
     # round value if to long
     if ( $Value > 1000000 or length $Value > 7 ) {
@@ -930,6 +944,7 @@ sub _ytick {
     );
   }
 
+
   # Display the minimale value
   $CompositeWidget->createText(
     $CompositeWidget->{RefInfoDummies}->{Axis}{CxMin} - (
@@ -947,17 +962,21 @@ sub _ytick {
     ],
   );
 
-  $CompositeWidget->createLine(
-    $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0},
-    $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin} - $Space,
-    $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
-      - $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{TickWidth},
-    $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin} - $Space,
-    -tags => [
-      $CompositeWidget->{RefInfoDummies}->{TAGS}{yTick},
-      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick}
-    ],
-  );
+    # Long tick
+    unless ( defined $longticks and $longticks == 1 ) {
+      $CompositeWidget->createLine(
+        $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0},
+        $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin} - $Space,
+        $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
+          - $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{TickWidth},
+        $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin} - $Space,
+        -tags => [
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{yTick},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick}
+        ],
+      );
+    }
+
 
   return;
 }
@@ -1175,7 +1194,7 @@ sub _GraphForDummiesConstruction {
     $CompositeWidget->delete(
       $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis} );
   }
-  if (  $CompositeWidget->cget( -zeroaxis ) == 1 ) {
+  if ( $CompositeWidget->cget( -zeroaxis ) == 1 ) {
     $CompositeWidget->delete(
       $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis0} );
     $CompositeWidget->delete(
@@ -1399,6 +1418,7 @@ sub set_balloon {
 }
 
 1;
+
 __END__
 
 
@@ -1459,6 +1479,8 @@ With this module it is possible to plot quantitative variables according to qual
 
 When the mouse cursor passes over a plotted line or its entry in the legend, 
 the line and its entry will be turn to a color (that you can change) to help identify it. 
+
+You can use 3 methods to zoom (vertically, horizontally or both).
 
 =head1 STANDARD OPTIONS
 
@@ -1756,6 +1778,18 @@ Draw the axes as a box.
  -boxaxis => 0, #  0 or 1
 
 Default : B<1>
+
+=item Name:	B<Longticks>
+
+=item Class:	B<LongTicks>
+
+=item Switch:	B<-longticks>
+
+If long_ticks is a true value, ticks will be drawn the same length as the axes.
+ 
+ -longticks => 1, #  0 or 1
+
+Default : B<0>
 
 =item Name:	B<Noaxis>
 
@@ -2422,7 +2456,7 @@ Create a zoom Menu with the chart.
 
 See L<Tk::Canvas> for details of the standard options.
 
-See L<Tk::ForDummies::Graph>, L<GD::Graph>, L<Tk::Graph>, L<Tk::LineGraph>, L<Tk::PlotDataset>.
+See L<Tk::ForDummies::Graph>, L<GD::Graph>, L<Tk::Graph>, L<Tk::LineGraph>, L<Tk::PlotDataset>
 
 =head1 SUPPORT
 
@@ -2452,9 +2486,6 @@ L<http://cpanratings.perl.org/d/Tk-ForDummies-Graph>
 L<http://search.cpan.org/dist/Tk-ForDummies-Graph/>
 
 =back
-
-
-=head1 ACKNOWLEDGEMENTS
 
 
 =head1 COPYRIGHT & LICENSE
