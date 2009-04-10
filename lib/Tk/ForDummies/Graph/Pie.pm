@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 01/04/2009 14:01:52
+# Update    : 07/04/2009 11:54:18
 # AIM       : Create pie chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.02';
+$VERSION = '1.03';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -96,27 +96,32 @@ sub plot {
   my ( $CompositeWidget, $RefData ) = @_;
 
   unless ( defined $RefData ) {
+    $CompositeWidget->_error("data not defined");
     return;
   }
 
   unless ( scalar @{$RefData} == 2 ) {
-    $CompositeWidget->_error("Warning : You must have 2 arrays in data array");
-    return;
-  }
-
-  # Calcul du nombre de données
-  unless ( scalar @{ $RefData->[0] } == scalar @{ $RefData->[1] } ) {
-    $CompositeWidget->_error(
-      "Warning : Make sure that every array "
-        . "has the same size in plot data method",
-      1
-    );
+    $CompositeWidget->_error("You must have 2 arrays in data array");
     return;
   }
 
   # Check array size
+  $CompositeWidget->{RefInfoDummies}->{Data}{NumberXValues}
+    = scalar @{ $RefData->[0] };
+  foreach my $RefArray ( @{$RefData} ) {
+    unless (
+      scalar @{$RefArray}
+      == $CompositeWidget->{RefInfoDummies}->{Data}{NumberXValues} )
+    {
+      $CompositeWidget->_error(
+        "Make sure that every array has the same size in plot data method", 1 );
+      return;
+    }
+  }
+
+  # Check array size
   foreach my $data ( @{ $RefData->[1] } ) {
-    unless ( defined $data and _isANumber($data) ) {
+    if ( defined $data and !_isANumber($data) ) {
       $data = $CompositeWidget->{RefInfoDummies}->{Data}{SubstitutionValue};
     }
   }
@@ -127,6 +132,8 @@ sub plot {
     = scalar @{ $RefData->[0] };
   $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}  = $RefData;
   $CompositeWidget->{RefInfoDummies}->{Data}{PlotDefined} = 1;
+
+  $CompositeWidget->_GraphPie;
 
   return;
 }
@@ -594,7 +601,7 @@ B<-yscrollincrement>
 =head1 WIDGET-SPECIFIC OPTIONS 
 
 Many options allow you to configure your chart as you want. 
-The default configuration have already OK, but you can change it.
+The default configuration is already OK, but you can change it.
 
 =over 4
 
@@ -748,7 +755,7 @@ and the point will be skipped.
 
 -substitutionvalue => I<real number>,
 
-If you have a missing value in a dataset, it will be replaced by a constant value.
+If you have a no real number value in a dataset, it will be replaced by a constant value.
 
 Default : B<0>
 
@@ -774,7 +781,7 @@ Redraw the chart.
 If you have used clearchart for any reason, it is possible to redraw the chart.
 Tk::ForDummies::Graph::Pie supports the configure and cget methods described in the L<Tk::options> manpage.
 If you use configure method to change a widget specific option, the modification will not be display. 
-if the chart was already displayed and if you not resize the widget, call B<redraw> method to 
+If the chart was already displayed and if you not resize the widget, call B<redraw> method to 
 resolv the bug.
 
  ...
@@ -834,11 +841,11 @@ Vertical zoom.
 
 See L<Tk::Canvas> for details of the standard options.
 
-See L<Tk::ForDummies::Graph>, L<GD::Graph>.
+See L<Tk::ForDummies::Graph>, L<Tk::ForDummies::Graph::FAQ>, L<GD::Graph>.
 
 =head1 AUTHOR
 
-Djibril Ousmanou, C<< <djibrilo at yahoo.fr> >>
+Djibril Ousmanou, C<< <djibel at cpan.org> >>
 
 =head1 BUGS
 

@@ -1,5 +1,16 @@
 Revision history for Tk-ForDummies-Graph
 
+1.05    11/04/2009 01:00:22 
+  Tk::ForDummies::Graph::Splines added.
+  Tk::ForDummies::Graph::FAQ added.
+  Tk::ForDummies::Graph::Boxplots added.
+  Tk::ForDummies::Graph::Points added.
+  
+  New option -smoothline in Tk::ForDummies::Graph::Lines
+  
+  fix bug :
+    - If you don't have a value for a point in a dataset, you can use undef, and the point will be really skipped.
+    
 1.04    01/04/2009 Fix bug installation, pod documentations and script bugs.
 
 1.03    31/03/2009 Tk::ForDummies::Graph::Areas added.

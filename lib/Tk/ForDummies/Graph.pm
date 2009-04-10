@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 01/04/2009 18:36:04
+# Update    : 09/04/2009
 # AIM       : Private functions for Dummies Graph modules
 #==================================================================
 use strict;
@@ -11,13 +11,14 @@ use warnings;
 use Carp;
 use Tk::ForDummies::Graph::Utils qw (:DUMMIES);
 use vars qw($VERSION);
-$VERSION = '1.04';
+$VERSION = '1.05';
 
 use Exporter;
 
 my @ModuleToExport = qw (
-  _TreatParameters         _InitConfig _error
-  _CheckSizeLengendAndData _ZoomCalcul _DestroyBalloonAndBind
+  _TreatParameters         _InitConfig    _error
+  _CheckSizeLengendAndData _ZoomCalcul    _DestroyBalloonAndBind
+  _CreateType              _GetMarkerType
 );
 
 our @ISA         = qw(Exporter);
@@ -138,12 +139,13 @@ sub _InitConfig {
       BoxLegend   => 'BoxLegendTag',
       AllData     => 'AllDataTag',
       AllPie      => 'AllPieTag',
-      Pie         => '_PieTag',         
-      Line        => '_LineTag',        
-      Bar         => '_BarTag',          
-      Legend      => '_LegendTag',      
-      DashLines   => '_DashLineTag',  
-      BarValues   => '_BarValuesTag',    
+      Pie         => '_PieTag',
+      Line        => '_LineTag',
+      Bar         => '_BarTag',
+      Legend      => '_LegendTag',
+      DashLines   => '_DashLineTag',
+      BarValues   => '_BarValuesTag',
+      Boxplot     => '_BoxplotTag',
     },
     'Title' => {
       Ctitrex  => undef,
@@ -165,8 +167,6 @@ sub _InitConfig {
 sub _TreatParameters {
   my ($CompositeWidget) = @_;
 
-  my $xvaluesregex  = $CompositeWidget->cget( -xvaluesregex );
-  my $Colors        = $CompositeWidget->cget( -colordata );
   my @IntegerOption = qw /
     -xlabelheight -xlabelskip     -xvaluespace  -ylabelwidth
     -boxaxis      -noaxis         -zeroaxisonly -xtickheight
@@ -174,7 +174,7 @@ sub _TreatParameters {
     -alltickview  -xvaluevertical -titleheight  -gridview
     -ytickview    -overwrite      -cumulate     -spacingbar
     -showvalues   -startangle     -viewsection  -zeroaxis
-    -longticks
+    -longticks    -smoothline     -pointline    -markersize
     /;
 
   foreach my $OptionName (@IntegerOption) {
@@ -186,6 +186,7 @@ sub _TreatParameters {
     }
   }
 
+  my $xvaluesregex = $CompositeWidget->cget( -xvaluesregex );
   unless ( ref($xvaluesregex) =~ m{^Regexp$}i ) {
     $CompositeWidget->_error(
       "'Can't set -xvaluesregex to `$xvaluesregex', "
@@ -195,11 +196,23 @@ sub _TreatParameters {
     );
     return;
   }
+
+  my $Colors = $CompositeWidget->cget( -colordata );
   if ( defined $Colors and ref($Colors) ne 'ARRAY' ) {
     $CompositeWidget->_error(
       "'Can't set -colordata to `$Colors', "
         . "$Colors' is not an array reference\nEx : "
         . "-colordata => [\"blue\",\"#2400FF\",...]",
+      1
+    );
+    return;
+  }
+  my $Markers = $CompositeWidget->cget( -markers );
+  if ( defined $Markers and ref($Markers) ne 'ARRAY' ) {
+    $CompositeWidget->_error(
+      "'Can't set -markers to `$Markers', "
+        . "$Markers' is not an array reference\nEx : "
+        . "-markers => [5,8,2]",
       1
     );
 
@@ -306,19 +319,17 @@ sub _TreatParameters {
 sub _CheckSizeLengendAndData {
   my ( $CompositeWidget, $RefData, $RefLegend ) = @_;
 
-  my $SizeLegend = scalar @{$RefLegend};
-
   # Check legend size
-  unless ( defined $RefData and defined $RefLegend ) {
-    $CompositeWidget->_error("[WARNING] data or legend not defined");
+  unless ( defined $RefLegend ) {
+    $CompositeWidget->_error("legend not defined");
     return;
   }
+  my $SizeLegend = scalar @{$RefLegend};
 
   # Check size between legend and data
   my $SizeData = scalar @{$RefData} - 1;
   unless ( $SizeLegend == $SizeData ) {
-    $CompositeWidget->_error(
-      "[WARNING] Legend and array size data are different");
+    $CompositeWidget->_error("Legend and array size data are different");
     return;
   }
 
@@ -346,8 +357,10 @@ sub _ZoomCalcul {
   my $CentPercentHeight
     = ( 100 / $CompositeWidget->{RefInfoDummies}->{Zoom}{CurrentY} )
     * $CurrentHeight;
-  my $NewWidth  = ( $ZoomX / 100 ) * $CentPercentWidth  if ( defined $ZoomX );
-  my $NewHeight = ( $ZoomY / 100 ) * $CentPercentHeight if ( defined $ZoomY );
+  my $NewWidth = ( $ZoomX / 100 ) * $CentPercentWidth
+    if ( defined $ZoomX );
+  my $NewHeight = ( $ZoomY / 100 ) * $CentPercentHeight
+    if ( defined $ZoomY );
 
   $CompositeWidget->{RefInfoDummies}->{Zoom}{CurrentX} = $ZoomX
     if ( defined $ZoomX );
@@ -381,15 +394,126 @@ sub _error {
   my ( $CompositeWidget, $ErrorMessage, $Croak ) = @_;
 
   if ( defined $Croak and $Croak == 1 ) {
-    croak $ErrorMessage, "\n";
+    croak "[BE CARREFUL] : $ErrorMessage\n";
   }
   else {
-    warn $ErrorMessage, "\n";
+    warn "[WARNING] : $ErrorMessage\n";
   }
 
   return;
 }
 
+sub _GetMarkerType {
+  my ( $CompositeWidget, $Number ) = @_;
+  my %MarkerType = (
+
+    # N°      Type                Filled
+    1  => [ "square",           1 ],
+    2  => [ "square",           0 ],
+    3  => [ "horizontal cross", 1 ],
+    4  => [ "diagonal cross",   1 ],
+    5  => [ "diamond",          1 ],
+    6  => [ "diamond",          0 ],
+    7  => [ "circle",           1 ],
+    8  => [ "circle",           0 ],
+    9  => [ "horizontal line",  1 ],
+    10 => [ "vertical line",    1 ],
+  );
+
+  return unless ( defined $MarkerType{$Number} );
+
+  return $MarkerType{$Number};
+}
+
+=for _CreateType
+  Calculate different points coord to create a rectangle, circle, 
+  verticale or horizontal line, a cross, a plus and a diamond 
+  from a point coord.
+  Arg : Reference of hash
+  {
+    x      => value,
+    y      => value,
+    pixel  => value,
+    type   => string, (circle, cross, plus, diamond, rectangle, Vline, Hline )
+    option => Hash reference ( {-fill => xxx, -outline => yy, ...} )
+  }
+
+=cut
+
+sub _CreateType {
+  my ( $CompositeWidget, %Refcoord ) = @_;
+
+  if ( $Refcoord{type} eq "circle" or $Refcoord{type} eq "square" ) {
+    my $x1 = $Refcoord{x} - ( $Refcoord{pixel} / 2 );
+    my $y1 = $Refcoord{y} + ( $Refcoord{pixel} / 2 );
+    my $x2 = $Refcoord{x} + ( $Refcoord{pixel} / 2 );
+    my $y2 = $Refcoord{y} - ( $Refcoord{pixel} / 2 );
+
+    if ( $Refcoord{type} eq "circle" ) {
+      $CompositeWidget->createOval( $x1, $y1, $x2, $y2,
+        %{ $Refcoord{option} } );
+    }
+    else {
+      $CompositeWidget->createRectangle( $x1, $y1, $x2, $y2,
+        %{ $Refcoord{option} } );
+    }
+  }
+  elsif ( $Refcoord{type} eq "horizontal cross" ) {
+    my $x1 = $Refcoord{x};
+    my $y1 = $Refcoord{y} - ( $Refcoord{pixel} / 2 );
+    my $x2 = $x1;
+    my $y2 = $Refcoord{y} + ( $Refcoord{pixel} / 2 );
+    my $x3 = $Refcoord{x} - ( $Refcoord{pixel} / 2 );
+    my $y3 = $Refcoord{y};
+    my $x4 = $Refcoord{x} + ( $Refcoord{pixel} / 2 );
+    my $y4 = $y3;
+    $CompositeWidget->createLine( $x1, $y1, $x2, $y2, %{ $Refcoord{option} } );
+    $CompositeWidget->createLine( $x3, $y3, $x4, $y4, %{ $Refcoord{option} } );
+  }
+  elsif ( $Refcoord{type} eq "diagonal cross" ) {
+    my $x1 = $Refcoord{x} - ( $Refcoord{pixel} / 2 );
+    my $y1 = $Refcoord{y} + ( $Refcoord{pixel} / 2 );
+    my $x2 = $Refcoord{x} + ( $Refcoord{pixel} / 2 );
+    my $y2 = $Refcoord{y} - ( $Refcoord{pixel} / 2 );
+    my $x3 = $x1;
+    my $y3 = $y2;
+    my $x4 = $x2;
+    my $y4 = $y1;
+    $CompositeWidget->createLine( $x1, $y1, $x2, $y2, %{ $Refcoord{option} } );
+    $CompositeWidget->createLine( $x3, $y3, $x4, $y4, %{ $Refcoord{option} } );
+  }
+  elsif ( $Refcoord{type} eq "diamond" ) {
+    my $x1 = $Refcoord{x} - ( $Refcoord{pixel} / 2 );
+    my $y1 = $Refcoord{y};
+    my $x2 = $Refcoord{x};
+    my $y2 = $Refcoord{y} + ( $Refcoord{pixel} / 2 );
+    my $x3 = $Refcoord{x} + ( $Refcoord{pixel} / 2 );
+    my $y3 = $Refcoord{y};
+    my $x4 = $Refcoord{x};
+    my $y4 = $Refcoord{y} - ( $Refcoord{pixel} / 2 );
+    $CompositeWidget->createPolygon( $x1, $y1, $x2, $y2, $x3, $y3, $x4, $y4,
+      %{ $Refcoord{option} } );
+  }
+  elsif ( $Refcoord{type} eq "vertical line" ) {
+    my $x1 = $Refcoord{x};
+    my $y1 = $Refcoord{y} - ( $Refcoord{pixel} / 2 );
+    my $x2 = $Refcoord{x};
+    my $y2 = $Refcoord{y} + ( $Refcoord{pixel} / 2 );
+    $CompositeWidget->createLine( $x1, $y1, $x2, $y2, %{ $Refcoord{option} } );
+  }
+  elsif ( $Refcoord{type} eq "horizontal line" ) {
+    my $x1 = $Refcoord{x} - ( $Refcoord{pixel} / 2 );
+    my $y1 = $Refcoord{y};
+    my $x2 = $Refcoord{x} + ( $Refcoord{pixel} / 2 );
+    my $y2 = $Refcoord{y};
+    $CompositeWidget->createLine( $x1, $y1, $x2, $y2, %{ $Refcoord{option} } );
+  }
+  else {
+    return;
+  }
+
+  return 1;
+}
 1;
 
 __END__
@@ -420,9 +544,13 @@ L<Tk::ForDummies::Graph::Lines>
     Extension of Canvas widget to create lines chart. 
     With this module it is possible to plot quantitative variables according to qualitative variables.
 
+L<Tk::ForDummies::Graph::Splines>
+
+    To create lines chart as B<Bézier curve>. 
+
 L<Tk::ForDummies::Graph::Areas>
 
-    Extension of Canvas widget to create a area lines chart. 
+    Extension of Canvas widget to create an area lines chart. 
 
 L<Tk::ForDummies::Graph::Bars>
 
@@ -432,17 +560,18 @@ L<Tk::ForDummies::Graph::Pie>
 
     Extension of Canvas widget to create a pie chart. 
 
+
 =head1 EXAMPLES
 
 See the samples directory in the distribution, and read documentations for each modules Tk::ForDummies::Graph::ModuleName.
 
 =head1 SEE ALSO
 
-See L<GD::Graph>, L<Tk::Graph>, L<Tk::LineGraph>, L<Tk::PlotDataset>, L<Chart::Plot::Canvas>.
+See L<Tk::ForDummies::Graph::FAQ>, L<GD::Graph>, L<Tk::Graph>, L<Tk::LineGraph>, L<Tk::PlotDataset>, L<Chart::Plot::Canvas>.
 
 =head1 AUTHOR
 
-Djibril Ousmanou, C<< <djibrilo at yahoo.fr> >>
+Djibril Ousmanou, C<< <djibel at cpan.org> >>
 
 =head1 BUGS
 
@@ -457,9 +586,13 @@ You can find documentation for this module with the perldoc command.
 
     perldoc Tk::ForDummies::Graph
     perldoc Tk::ForDummies::Graph::Lines
+    perldoc Tk::ForDummies::Graph::Splines
+    perldoc Tk::ForDummies::Graph::Points
     perldoc Tk::ForDummies::Graph::Bars
     perldoc Tk::ForDummies::Graph::Areas
     perldoc Tk::ForDummies::Graph::Pie
+    perldoc Tk::ForDummies::Graph::FAQ
+    perldoc Tk::ForDummies::Graph::Boxplots
 
 
 You can also look for information at:

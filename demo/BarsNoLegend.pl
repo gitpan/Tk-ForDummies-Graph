@@ -10,9 +10,10 @@ my $mw = new MainWindow(
 );
 
 my $GraphDummies = $mw->Bars(
-  -title  => 'My chart title - no legend',
-  -xlabel => 'X Label',
-  -ylabel => 'Y Label',
+  -title      => 'My chart title - no legend',
+  -xlabel     => 'X Label',
+  -background => 'snow',
+  -ylabel     => 'Y Label',
 )->pack(qw / -fill both -expand 1 /);
 
 my @data = (

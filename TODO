@@ -1,14 +1,11 @@
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 01/04/2009 17:44:03
+# Update    : 11/04/2009 01:26:58
 # AIM       : Tk::ForDummies::Graph TODO
 #==================================================================
 
-Create Tk::ForDummies::Graph::FAQS
+Create Tk::ForDummies::Graph::Mixed
 
 Create Tk::ForDummies::Graph::HBars
 
-Create Tk::ForDummies::Graph::Points
-
-Create Tk::ForDummies::Graph::Mixed

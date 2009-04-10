@@ -1,0 +1,75 @@
+=head1 NAME
+
+Tk::ForDummies::Graph::Splines - To create lines chart as Bézier curve. 
+
+=head1 SYNOPSIS
+
+Do not use this module. Use L<Tk::ForDummies::Graph::Lines>.
+
+=head1 DESCRIPTION
+
+You have to use B<Tk::ForDummies::Graph::Lines> module and set -smoothline option to 1.
+
+See L<Tk::ForDummies::Graph::Lines/"Options for all lines graph"> and 
+L<Tk::ForDummies::Graph::Lines/"Options for spline lines graph">
+
+
+B<Be careful>, a Bézier curve (L<http://en.wikipedia.org/wiki/Bezier_curve>) does not touch all points of dataset, just the extremity points.
+
+
+=head1 EXAMPLES
+
+  #!/usr/bin/perl
+  use strict;
+  use warnings;
+  use Tk;
+  use Tk::ForDummies::Graph::Lines;
+
+  my $mw = new MainWindow(
+    -title      => 'Splines example',
+    -background => 'white',
+  );
+  my $GraphDummies = $mw->Lines(
+    -title  => 'My chart title',
+    -xlabel => 'X Label',
+    -ylabel => 'Y Label',
+    -smoothline => 1,
+  )->pack(qw / -fill both -expand 1 /);
+
+  my @data = (
+    [ '1st', '2nd', '3rd' ],
+    [ 10,     30,     10, ],
+    [ 10,     0,      10, ],
+    [ 20,     10,     30, ],
+  );
+
+
+  # Add a legend to the chart
+  my @Legends = ( 'legend 1', 'legend 2', 'legend 3' );
+  $GraphDummies->set_legend(
+    -title       => "Title legend",
+    -data        => \@Legends,
+    -titlecolors => "blue",
+  );
+
+  # Add help identification
+  $GraphDummies->set_balloon();
+
+  # Create the chart
+  $GraphDummies->plot( \@data );
+
+  MainLoop();
+
+=head1 SEE ALSO
+
+See L<Tk::ForDummies::Lines>, L<Tk::ForDummies::Graph::FAQ>
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2009 Djibril Ousmanou, all rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+
+=cut

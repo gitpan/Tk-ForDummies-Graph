@@ -1,35 +1,38 @@
 ---
 name: Tk-ForDummies-Graph
-version: 1.04
+version: 1.05
 author:
   - 'Djibril Ousmanou <djibrilo@yahoo.fr>'
 abstract: Extension of Canvas widget to create a graph like GDGraph.
 license: perl
+resources:
+  license: ~
 build_requires:
   Test::More: 0
   Tk: 800
+provides:
+  Tk::ForDummies::Graph:
+    file: lib/Tk/ForDummies/Graph.pm
+    version: 1.05
+  Tk::ForDummies::Graph::Areas:
+    file: lib/Tk/ForDummies/Graph/Areas.pm
+    version: 1.02
+  Tk::ForDummies::Graph::Bars:
+    file: lib/Tk/ForDummies/Graph/Bars.pm
+    version: 1.03
+  Tk::ForDummies::Graph::Boxplots:
+    file: lib/Tk/ForDummies/Graph/Boxplots.pm
+    version: 1.00
+  Tk::ForDummies::Graph::Lines:
+    file: lib/Tk/ForDummies/Graph/Lines.pm
+    version: 1.03
+  Tk::ForDummies::Graph::Pie:
+    file: lib/Tk/ForDummies/Graph/Pie.pm
+    version: 1.03
+  Tk::ForDummies::Graph::Utils:
+    file: lib/Tk/ForDummies/Graph/Utils.pm
+    version: 1.01
 generated_by: Module::Build version 0.31012
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2
-provides:
-  Tk::ForDummies::Graph:
-    file: lib/Tk/ForDummies/Graph.pm
-    version: 1.04
-  Tk::ForDummies::Graph::Areas:
-    file: lib/Tk/ForDummies/Graph/Areas.pm
-    version: 1.01
-  Tk::ForDummies::Graph::Bars:
-    file: lib/Tk/ForDummies/Graph/Bars.pm
-    version: 1.02
-  Tk::ForDummies::Graph::Lines:
-    file: lib/Tk/ForDummies/Graph/Lines.pm
-    version: 1.02
-  Tk::ForDummies::Graph::Pie:
-    file: lib/Tk/ForDummies/Graph/Pie.pm
-    version: 1.02
-  Tk::ForDummies::Graph::Utils:
-    file: lib/Tk/ForDummies/Graph/Utils.pm
-    version: 1.00
-resources:
-  license: ~

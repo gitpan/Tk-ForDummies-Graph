@@ -36,9 +36,14 @@ perldoc command.
 
     perldoc Tk::ForDummies::Graph
     perldoc Tk::ForDummies::Graph::Lines
+    perldoc Tk::ForDummies::Graph::Splines
     perldoc Tk::ForDummies::Graph::Bars
     perldoc Tk::ForDummies::Graph::Areas
     perldoc Tk::ForDummies::Graph::Pie
+    perldoc Tk::ForDummies::Graph::Points
+    perldoc Tk::ForDummies::Graph::Boxplots
+    perldoc Tk::ForDummies::Graph::FAQ
+
 
 You can also look for information at:
 

@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 01/04/2009 15:36:45
+# Update    : 09/04/2009 15:36:00
 # AIM       : Create area chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -212,12 +212,12 @@ sub _Balloon {
       sub {
         $CompositeWidget->itemconfigure( $LineTag,
           -fill => $CompositeWidget->{RefInfoDummies}{Line}{$LineTag}{color}, );
-        
+
         # Allow dash line to display
-        $CompositeWidget->itemconfigure( $CompositeWidget->{RefInfoDummies}->{TAGS}{DashLines}, 
-          -fill => "black", 
-        );
-          
+        $CompositeWidget->itemconfigure(
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{DashLines},
+          -fill => "black", );
+
       }
     );
   }
@@ -232,7 +232,7 @@ sub set_legend {
   unless ( defined $RefLegend ) {
     $CompositeWidget->_error(
       "Can't set -data in set_legend method. "
-        . "May be you have forgot to set the value\n"
+        . "May be you forgot to set the value\n"
         . "Ex : set_legend( -data => ['legend1', 'legend2', ...] );",
       1
     );
@@ -1055,14 +1055,16 @@ sub _ViewData {
         my $IndexY1 = $i + 1;
         my $IndexX2 = $i;
         $CompositeWidget->createLine(
-          $DashPointsxLines[$IndexX1], $DashPointsxLines[$IndexY1],
+          $DashPointsxLines[$IndexX1],
+          $DashPointsxLines[$IndexY1],
           $DashPointsxLines[$IndexX2],
           $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0},
           -dash => ".",
-          -tags =>
-            [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData},
-              $CompositeWidget->{RefInfoDummies}->{TAGS}{DashLines},
-             ],
+          -tags => [
+            $tag,
+            $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData},
+            $CompositeWidget->{RefInfoDummies}->{TAGS}{DashLines},
+          ],
         );
         $i++;
       }
@@ -1090,11 +1092,12 @@ sub plot {
   }
 
   unless ( defined $RefData ) {
+    $CompositeWidget->_error("data not defined");
     return;
   }
 
   unless ( scalar @{$RefData} > 1 ) {
-    $CompositeWidget->_error("Warning : You must have at least 2 arrays");
+    $CompositeWidget->_error("You must have at least 2 arrays");
     return;
   }
 
@@ -1115,9 +1118,7 @@ sub plot {
       == $CompositeWidget->{RefInfoDummies}->{Data}{NumberXValues} )
     {
       $CompositeWidget->_error(
-        "Warning : Make sure that every array has the same size in plot data method",
-        1
-      );
+        "Make sure that every array has the same size in plot data method", 1 );
       return;
     }
 
@@ -1126,7 +1127,7 @@ sub plot {
 
       # substitute none real value
       foreach my $data ( @{$RefArray} ) {
-        unless ( defined $data and _isANumber($data) ) {
+        if ( defined $data and !_isANumber($data) ) {
           $data = $CompositeWidget->{RefInfoDummies}->{Data}{SubstitutionValue};
         }
       }
@@ -1160,6 +1161,7 @@ sub plot {
       = int( $CompositeWidget->{RefInfoDummies}->{Data}{MaxYValue} + 1 );
   }
 
+  $CompositeWidget->_GraphForDummiesConstruction;
   return 1;
 }
 
@@ -1451,7 +1453,7 @@ __END__
 
 =head1 NAME
 
-Tk::ForDummies::Graph::Areas - Extension of Canvas widget to create a Areas line chart like GDGraph. 
+Tk::ForDummies::Graph::Areas - Extension of Canvas widget to create area lines chart. 
 
 =head1 SYNOPSIS
 
@@ -1507,7 +1509,7 @@ The axes can be automatically scaled or set by the code.
 With this module it is possible to plot quantitative variables according to qualitative variables.
 
 When the mouse cursor passes over a plotted line or its entry in the legend, 
-the line and its entry will be turn to a color (that you can change) to help identify it. 
+the line and its entry will be turned to a color (that you can change) to help identify it. 
 
 =head1 STANDARD OPTIONS
 
@@ -1689,7 +1691,7 @@ Default : B<30>
 
 =item Switch:	B<-xvaluesregex>
 
-View the x values which will match with regex. It allow you to display tick on x axis and values 
+View the x values which will match with regex. It allows you to display tick on x axis and values 
 that you want. You can combine it with -xlabelskip to perform what you want to display if you have many dataset.
 
  
@@ -1965,7 +1967,7 @@ Default :
     'black',   '#FFCCFF', '#99CCFF', '#FF00CC', '#FF8000', '#006090',
   ],
 
-The default array contain 24 colors. If you have more than 24 samples, the next line 
+The default array contains 24 colors. If you have more than 24 samples, the next line 
 will have the color of the first array case (red).
 
 =back
@@ -2001,7 +2003,7 @@ will complain and refuse to compile the graph.
  my @NewData = (1,10,12,5,4);
  $GraphDummies>->(\@NewData);
 
-If your last chart have a legend, you have to add a legend entry for the new dataset. Otherwise, 
+If your last chart has a legend, you have to add a legend entry for the new dataset. Otherwise, 
 the legend chart will not be display (see below).
 
 =item *
@@ -2076,7 +2078,7 @@ and the point will be skipped.
 
 -substitutionvalue => I<real number>,
 
-If you have a missing value in a dataset, it will be replaced by a constant value.
+If you have a no real number value in a dataset, it will be replaced by a constant value.
 
 Default : B<0>
 
@@ -2104,7 +2106,7 @@ Redraw the chart.
 If you have used clearchart for any reason, it is possible to redraw the chart.
 Tk::ForDummies::Graph::Areas supports the configure and cget methods described in the L<Tk::options> manpage.
 If you use configure method to change a widget specific option, the modification will not be display. 
-if the chart was already displayed and if you not resize the widget, call B<redraw> method to 
+If the chart was already displayed and if you not resize the widget, call B<redraw> method to 
 resolv the bug.
 
  ...
@@ -2153,8 +2155,8 @@ Default : B<snow>
 
 -colordatamouse => I<Array reference>
 
-Specifie a array reference wich contains 2 colors. The first color specifies 
-the color of the line when mouse cursor passes over a entry in the legend. If the line 
+Specify an array reference wich contains 2 colors. The first color specifies 
+the color of the line when mouse cursor passes over an entry in the legend. If the line 
 has the same color, the second color will be used.
 
  -colordatamouse => ["blue", "green"],
@@ -2307,7 +2309,7 @@ zoom the chart the y axis.
 
 =head1 AUTHOR
 
-Djibril Ousmanou, C<< <djibrilo at yahoo.fr> >>
+Djibril Ousmanou, C<< <djibel at cpan.org> >>
 
 =head1 BUGS
 
@@ -2319,7 +2321,7 @@ automatically be notified of progress on your bug as I make changes.
 
 See L<Tk::Canvas> for details of the standard options.
 
-See L<Tk::ForDummies::Graph>, L<GD::Graph>.
+See L<Tk::ForDummies::Graph>, L<Tk::ForDummies::Graph::FAQ>, L<GD::Graph>.
 
 =head1 SUPPORT
 

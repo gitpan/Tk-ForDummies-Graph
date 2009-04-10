@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 01/04/2009 18:54:07
+# Update    : 09/04/2009 21:51:02
 # AIM       : Create bars chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.02';
+$VERSION = '1.03';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -92,7 +92,7 @@ sub Populate {
     -noaxis       => [ 'PASSIVE', 'Noaxis',       'NoAxis',       0 ],
     -zeroaxisonly => [ 'PASSIVE', 'Zeroaxisonly', 'ZeroAxisOnly', 0 ],
     -zeroaxis     => [ 'PASSIVE', 'Zeroaxis',     'ZeroAxis',     0 ],
-    -longticks => [ 'PASSIVE', 'Longticks', 'LongTicks', 0 ],
+    -longticks    => [ 'PASSIVE', 'Longticks',    'LongTicks',    0 ],
 
     -xtickheight => [
       'PASSIVE', 'Xtickheight', 'XTickHeight',
@@ -218,9 +218,9 @@ sub _Balloon {
           -fill => $CompositeWidget->{RefInfoDummies}{Bar}{$BarTag}{color}, );
 
         # Allow value bar to display
-        $CompositeWidget->itemconfigure( $CompositeWidget->{RefInfoDummies}->{TAGS}{BarValues}, 
-          -fill => 'black', 
-        );
+        $CompositeWidget->itemconfigure(
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{BarValues},
+          -fill => 'black', );
       }
     );
   }
@@ -235,7 +235,7 @@ sub set_legend {
   unless ( defined $RefLegend ) {
     $CompositeWidget->_error(
       "Can't set -data in set_legend method. "
-        . "May be you have forgot to set the value\n"
+        . "May be you forgot to set the value\n"
         . "Eg : set_legend( -data => ['legend1', 'legend2', ...] );",
       1
     );
@@ -448,7 +448,7 @@ sub _ViewLegend {
   my $IndexLegend = 0;
 
   # initialisation of balloon message
-  $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon} = {};
+  #$CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon} = {};
   for my $NumberLine (
     0 .. $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLine} - 1 )
   {
@@ -521,8 +521,8 @@ sub _ViewLegend {
         = $IndexLegend . $CompositeWidget->{RefInfoDummies}->{TAGS}{Bar};
       $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$Tag}
         = $Legende;
-      $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$BarTag}
-        = $Legende;
+
+#$CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$BarTag}        = $Legende;
 
       last LEGEND
         if ( $IndexLegend
@@ -813,7 +813,7 @@ sub _xtick {
   my ($CompositeWidget) = @_;
 
   my $xvaluecolor = $CompositeWidget->cget( -xvaluecolor );
-  my $longticks    = $CompositeWidget->cget( -longticks );
+  my $longticks   = $CompositeWidget->cget( -longticks );
 
   # x coordinates y ticks on bottom x axis
   my $Xtickx1 = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMin};
@@ -867,13 +867,13 @@ sub _xtick {
 
     if ( $data =~ m{$RegexXtickselect} ) {
       next unless ( defined $IndiceToSkip{$Indice} );
-      
+
       # Long tick
       if ( defined $longticks and $longticks == 1 ) {
         $Xticky1 = $CompositeWidget->{RefInfoDummies}->{Axis}{CyMax};
         $Xticky2 = $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin};
       }
-      
+
       $CompositeWidget->createLine(
         $Xtickx1, $Xticky1, $Xtickx2, $Xticky2,
         -tags => [
@@ -902,7 +902,7 @@ sub _xtick {
 sub _ytick {
   my ($CompositeWidget) = @_;
 
-  my $longticks    = $CompositeWidget->cget( -longticks );  
+  my $longticks = $CompositeWidget->cget( -longticks );
   $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{TickNumber}
     = $CompositeWidget->cget( -yticknumber );
 
@@ -998,20 +998,20 @@ sub _ytick {
     ],
   );
 
-    # Long tick
-    unless ( defined $longticks and $longticks == 1 ) {
-      $CompositeWidget->createLine(
-        $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0},
-        $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin} - $Space,
-        $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
-          - $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{TickWidth},
-        $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin} - $Space,
-        -tags => [
-          $CompositeWidget->{RefInfoDummies}->{TAGS}{yTick},
-          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick}
-        ],
-      );
-    }
+  # Long tick
+  unless ( defined $longticks and $longticks == 1 ) {
+    $CompositeWidget->createLine(
+      $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0},
+      $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin} - $Space,
+      $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
+        - $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{TickWidth},
+      $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin} - $Space,
+      -tags => [
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{yTick},
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick}
+      ],
+    );
+  }
 
   return;
 }
@@ -1037,8 +1037,6 @@ sub _ViewData {
   my $IdData     = 0;
   my $IndexColor = 0;
   my $WidthBar
-    = $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick};
-  $WidthBar
     = $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick}
     / $CompositeWidget->{RefInfoDummies}->{Data}{NumberRealData};
 
@@ -1132,11 +1130,18 @@ sub _ViewData {
         $LineColor  = $legendmarkercolors->[$IndexColor];
       }
       my $tag = $IdData . $CompositeWidget->{RefInfoDummies}->{TAGS}{Bar};
+      my $tag2
+        = $IdData
+        . "_$NumberData"
+        . $CompositeWidget->{RefInfoDummies}->{TAGS}{Bar};
+      $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$tag2}
+        = "Value : $data";
 
       $CompositeWidget->createRectangle(
         $x0, $y0, $x, $y,
-        -fill  => $LineColor,
-        -tags  => [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+        -fill => $LineColor,
+        -tags =>
+          [ $tag, $tag2, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
         -width => $CompositeWidget->cget( -linewidth ),
       );
       if ( $showvalues == 1 ) {
@@ -1144,7 +1149,8 @@ sub _ViewData {
           $x0 + ( $x - $x0 ) / 2, $y - 8,
           -text => $data,
           -font => $CompositeWidget->{RefInfoDummies}->{Font}{DefaultBarValues},
-          -tags  => [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{BarValues} ],
+          -tags =>
+            [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{BarValues} ],
         );
       }
 
@@ -1177,11 +1183,12 @@ sub plot {
     = scalar( @{$RefData} ) - 1;
 
   unless ( defined $RefData ) {
+    $CompositeWidget->_error("data not defined");
     return;
   }
 
   unless ( scalar @{$RefData} > 1 ) {
-    $CompositeWidget->_error("Warning : You must have at least 2 arrays");
+    $CompositeWidget->_error("You must have at least 2 arrays");
     return;
   }
 
@@ -1207,8 +1214,7 @@ sub plot {
       == $CompositeWidget->{RefInfoDummies}->{Data}{NumberXValues} )
     {
       $CompositeWidget->_error(
-        "Warning : Make sure that every array has the "
-          . "same size in plot data method",
+        "Make sure that every array has the " . "same size in plot data method",
         1
       );
       return;
@@ -1220,7 +1226,7 @@ sub plot {
       # substitute none real value
       my $j = 0;
       foreach my $data ( @{$RefArray} ) {
-        unless ( defined $data and _isANumber($data) ) {
+        if ( defined $data and !_isANumber($data) ) {
           $data = $CompositeWidget->{RefInfoDummies}->{Data}{SubstitutionValue};
         }
         $arrayTemp[$j] += $data;    # For cumulate option
@@ -1260,6 +1266,9 @@ sub plot {
     $CompositeWidget->{RefInfoDummies}->{Data}{MaxYValue}
       = int( $CompositeWidget->{RefInfoDummies}->{Data}{MaxYValue} + 1 );
   }
+
+  $CompositeWidget->_GraphForDummiesConstruction;
+
   return 1;
 }
 
@@ -1552,7 +1561,7 @@ __END__
 
 =head1 NAME
 
-Tk::ForDummies::Graph::Bars - Extension of Canvas widget to create a bars chart. 
+Tk::ForDummies::Graph::Bars - Extension of Canvas widget to create bars chart. 
 
 =head1 SYNOPSIS
 
@@ -1605,8 +1614,8 @@ You can change the color, font of title, labels (x and y) of the chart.
 You can set an interactive legend.  
 The axes can be automatically scaled or set by the code. 
 
-When the mouse cursor passes over a plotted line or its entry in the legend, 
-the line and its entry will be turn to a color (that you can change) to help identify it. 
+When the mouse cursor passes over a bar or its entry in the legend, 
+the bar and its entry will be turned to a color (that you can change) to help identify it. 
 
 You can use 3 methods to zoom (vertically, horizontally or both).
 
@@ -1684,11 +1693,11 @@ Default : B<1>
 
 =back
 
-=head1 WIDGET-SPECIFIC OPTIONS like Tk::ForDummies::Graph::Bars
+=head1 WIDGET-SPECIFIC OPTIONS like Tk::ForDummies::Graph::Lines
 
 Many options allow you to configure your chart as you want. 
-The default configuration have already OK, but you can change it.
-It is the same option as L<Tk::ForDummies::Graph::Bars> module
+The default configuration is already OK, but you can change it.
+these are the same option as L<Tk::ForDummies::Graph::Lines> module
 
 =over 4
 
@@ -1837,7 +1846,7 @@ Default : B<30>
 
 =item Switch:	B<-xvaluesregex>
 
-View the x values which will match with regex. It allow you to display tick on x axis and values 
+View the x values which will match with regex. It allows you to display tick on x axis and values 
 that you want. You can combine it with -xlabelskip to perform what you want to display if you have many dataset.
 
  
@@ -2128,7 +2137,7 @@ Default :
     'black',   '#FFCCFF', '#99CCFF', '#FF00CC', '#FF8000', '#006090',
   ],
 
-The default array contain 24 colors. If you have more than 24 samples, the next line 
+The default array contains 24 colors. If you have more than 24 samples, the next line 
 will have the color of the first array case (red).
 
 =back
@@ -2164,7 +2173,7 @@ will complain and refuse to compile the graph.
  my @NewData = (1,10,12,5,4);
  $GraphDummies>->(\@NewData);
 
-If your last chart have a legend, you have to add a legend entry for the new dataset. Otherwise, 
+If your last chart has a legend, you have to add a legend entry for the new dataset. Otherwise, 
 the legend chart will not be display (see below).
 
 =item *
@@ -2239,7 +2248,7 @@ and the point will be skipped.
 
 -substitutionvalue => I<real number>,
 
-If you have a missing value in a dataset, it will be replaced by a constant value.
+If you have a no real number value in a dataset, it will be replaced by a constant value.
 
 Default : B<0>
 
@@ -2267,7 +2276,7 @@ Redraw the chart.
 If you have used clearchart for any reason, it is possible to redraw the chart.
 Tk::ForDummies::Graph::Bars supports the configure and cget methods described in the L<Tk::options> manpage.
 If you use configure method to change a widget specific option, the modification will not be display. 
-if the chart was already displayed and if you not resize the widget, call B<redraw> method to 
+If the chart was already displayed and if you not resize the widget, call B<redraw> method to 
 resolv the bug.
 
  ...
@@ -2316,7 +2325,7 @@ Default : B<snow>
 
 -colordatamouse => I<Array reference>
 
-Specifie a array reference wich contains 2 colors. The first color specifies 
+Specify an array reference wich contains 2 colors. The first color specifies 
 the color of the line when mouse cursor passes over a entry in the legend. If the line 
 has the same color, the second color will be used.
 
@@ -2470,7 +2479,7 @@ zoom the chart the y axis.
 
 =head1 AUTHOR
 
-Djibril Ousmanou, C<< <djibrilo at yahoo.fr> >>
+Djibril Ousmanou, C<< <djibel at cpan.org> >>
 
 =head1 BUGS
 
@@ -2662,7 +2671,7 @@ No spacingbar and show values
 
 See L<Tk::Canvas> for details of the standard options.
 
-See L<Tk::ForDummies::Graph>, L<GD::Graph>, L<Tk::Graph>.
+See L<Tk::ForDummies::Graph>, L<Tk::ForDummies::Graph::FAQ>, L<GD::Graph>, L<Tk::Graph>.
 
 =head1 SUPPORT
 
