@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 09/04/2009
+# Update    : 13/04/2009 13:34:12
 # AIM       : Private functions for Dummies Graph modules
 #==================================================================
 use strict;
@@ -11,7 +11,7 @@ use warnings;
 use Carp;
 use Tk::ForDummies::Graph::Utils qw (:DUMMIES);
 use vars qw($VERSION);
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 use Exporter;
 
@@ -44,6 +44,7 @@ sub _InitConfig {
         CxlabelX          => undef,
         CxlabelY          => undef,
         Idxlabel          => undef,
+        IdxTick          => undef,
         TagAxis0          => 'Axe00',
       },
       Yaxis => {

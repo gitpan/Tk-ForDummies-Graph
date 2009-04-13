@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 07/04/2009 11:54:18
+# Update    : 13/04/2009 12:31:47
 # AIM       : Create pie chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -471,15 +471,16 @@ sub _ViewLegend {
       # Cut legend text if too long
       my $Legende = $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[0]
         ->[$IndexLegend];
-      if ( length $Legende > $MaxLength ) {
+      my $NewLegend = $Legende;
+      if ( length $NewLegend > $MaxLength ) {
         $MaxLength -= 3;
-        $Legende =~ s/^(.{$MaxLength}).*/$1/;
-        $Legende .= '...';
+        $NewLegend =~ s/^(.{$MaxLength}).*/$1/;
+        $NewLegend .= '...';
       }
 
       my $Id = $CompositeWidget->createText(
         $xText, $yText,
-        -text   => $Legende,
+        -text   => $NewLegend,
         -anchor => 'nw',
         -tags   => $Tag,
       );

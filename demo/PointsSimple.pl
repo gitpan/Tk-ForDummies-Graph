@@ -2,12 +2,10 @@
 use strict;
 use warnings;
 use Tk;
-use lib
-  'Z:/djibril/Perso/Programmation/perl/COMPILATION/Tk-ForDummies-Graph/lib';
 use Tk::ForDummies::Graph::Lines;
 
 my $mw = new MainWindow(
-  -title      => 'Tk::ForDummies::Graph::Lines example',
+  -title      => 'Tk::ForDummies::Graph::Points example',
   -background => 'white',
 );
 my $GraphDummies = $mw->Lines(

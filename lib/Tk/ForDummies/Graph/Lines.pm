@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 07/04/2009 11:54:30
+# Update    : 13/04/2009 03:21:45
 # AIM       : Create line chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -216,7 +216,11 @@ sub _Balloon {
         if ( $CompositeWidget->itemcget( $LineTag, -fill ) ) {
           $CompositeWidget->itemconfigure( $LineTag, -fill => $OtherColor, );
         }
-
+        $CompositeWidget->itemconfigure( $LineTag, 
+          -width => $CompositeWidget->cget( -linewidth ) 
+            + $CompositeWidget->{RefInfoDummies}->{Balloon}{MorePixelSelected}, 
+        );
+          
         # if -outline enabled
         eval {
           if ( $CompositeWidget->itemcget( $LineTag, -outline ) )
@@ -237,6 +241,10 @@ sub _Balloon {
             -fill => $CompositeWidget->{RefInfoDummies}{Line}{$LineTag}{color},
           );
         }
+        $CompositeWidget->itemconfigure( $LineTag, 
+          -width => $CompositeWidget->cget( -linewidth ),
+        );
+                
         eval {
           if ( $CompositeWidget->itemcget( $LineTag, -outline ) )
           {
@@ -340,7 +348,8 @@ sub set_legend {
 
   # Store Reference data
   $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} = $RefLegend;
-
+  $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} = scalar @{$RefLegend};
+  
   return 1;
 }
 
@@ -486,15 +495,17 @@ sub _ViewLegend {
       # Cut legend text if too long
       my $Legende = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend}
         ->[$IndexLegend];
-      if ( length $Legende > $MaxLength ) {
+      my $NewLegend = $Legende;
+      
+      if ( length $NewLegend > $MaxLength ) {
         $MaxLength -= 3;
-        $Legende =~ s/^(.{$MaxLength}).*/$1/;
-        $Legende .= '...';
+        $NewLegend =~ s/^(.{$MaxLength}).*/$1/;
+        $NewLegend .= '...';
       }
-
+      
       my $Id = $CompositeWidget->createText(
         $xText, $yText,
-        -text   => $Legende,
+        -text   => $NewLegend,
         -anchor => 'nw',
         -tags   => $Tag,
       );
@@ -1288,7 +1299,7 @@ sub _GraphForDummiesConstruction {
     $CompositeWidget->_ytick();
   }
 
-  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} ) {
+  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} > 0 ) {
     $CompositeWidget->_ViewLegend();
     $CompositeWidget->_Balloon();
   }
@@ -1493,7 +1504,7 @@ sub add_data {
   my ( $CompositeWidget, $Refdata, $legend ) = @_;
 
   push( @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} }, $Refdata );
-  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} ) {
+  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} > 0 ) {
     push @{ $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} }, $legend;
   }
 
@@ -2340,7 +2351,7 @@ Default : -colordatamouse => B<[ '#7F9010', '#CB89D3' ]>
 
 =item *
 
--morepixelselected => I<boolean>
+-morepixelselected => I<integer>
 
 When the mouse cursor passes over an entry in the legend, 
 the line width increase. 
@@ -2416,7 +2427,7 @@ Default : B<1>
 
 =item *
 
--legendmarkerheight => I<boolean>
+-legendmarkerheight => I<integer>
 
 Change the heigth of marker for each legend entry. 
 
@@ -2426,7 +2437,7 @@ Default : B<10>
 
 =item *
 
--legendmarkerwidth => I<boolean>
+-legendmarkerwidth => I<integer>
 
 Change the width of marker for each legend entry. 
 
@@ -2436,7 +2447,7 @@ Default : B<10>
 
 =item *
 
--heighttitle => I<boolean>
+-heighttitle => I<integer>
 
 Change the height title legend space. 
 

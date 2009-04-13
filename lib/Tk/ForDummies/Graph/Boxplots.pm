@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 10/04/2009
+# Update    : 13/04/2009 02:06:29
 # AIM       : Create bars chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.00';
+$VERSION = '1.01';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -204,7 +204,11 @@ sub _Balloon {
           $OtherColor
             = $CompositeWidget->{RefInfoDummies}->{Balloon}{ColorData}->[1];
         }
-        $CompositeWidget->itemconfigure( $BoxplotTag, -fill => $OtherColor, );
+        $CompositeWidget->itemconfigure( $BoxplotTag, 
+          -fill => $OtherColor, 
+          -width => $CompositeWidget->cget( -linewidth ) 
+            + $CompositeWidget->{RefInfoDummies}->{Balloon}{MorePixelSelected},        
+        );
       }
     );
 
@@ -213,8 +217,9 @@ sub _Balloon {
       '<Leave>',
       sub {
         $CompositeWidget->itemconfigure( $BoxplotTag,
-          -fill =>
-            $CompositeWidget->{RefInfoDummies}{Boxplot}{$BoxplotTag}{color}, );
+          -fill => $CompositeWidget->{RefInfoDummies}{Boxplot}{$BoxplotTag}{color}, 
+          -width => $CompositeWidget->cget( -linewidth ),
+        );
 
         # Allow value bar to display
         $CompositeWidget->itemconfigure(
@@ -229,7 +234,6 @@ sub _Balloon {
 
 sub set_legend {
   my ( $CompositeWidget, %InfoLegend ) = @_;
-
   my $RefLegend = $InfoLegend{-data};
   unless ( defined $RefLegend ) {
     $CompositeWidget->_error(
@@ -344,7 +348,8 @@ sub set_legend {
 
   # Store Reference data
   $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} = $RefLegend;
-
+  $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} = scalar @{$RefLegend};
+  
   return 1;
 }
 
@@ -489,15 +494,17 @@ sub _ViewLegend {
       # Cut legend text if too long
       my $Legende = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend}
         ->[$IndexLegend];
-      if ( length $Legende > $MaxLength ) {
+      my $NewLegend = $Legende;
+      
+      if ( length $NewLegend > $MaxLength ) {
         $MaxLength -= 3;
-        $Legende =~ s/^(.{$MaxLength}).*/$1/;
-        $Legende .= '...';
+        $NewLegend =~ s/^(.{$MaxLength}).*/$1/;
+        $NewLegend .= '...';
       }
-
+      
       my $Id = $CompositeWidget->createText(
         $xText, $yText,
-        -text   => $Legende,
+        -text   => $NewLegend,
         -anchor => 'nw',
         -tags   => $Tag,
       );
@@ -520,9 +527,6 @@ sub _ViewLegend {
       # balloon on legend
       $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$Tag}
         = $Legende;
-
-# balloon on boxplot
-#$CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$BoxplotTag} = $Legende;
 
       last LEGEND
         if ( $IndexLegend
@@ -654,7 +658,7 @@ sub _axis {
       + $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{TickWidth} );
 
   # get Height legend
-  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} ) {
+  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} > 0 ) {
     $CompositeWidget->_Legend(
       $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} );
   }
@@ -881,6 +885,17 @@ sub _xtick {
           $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick}
         ],
       );
+    if ( defined $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick} 
+    and defined $CompositeWidget->{RefInfoDummies}->{Legend}{WidthOneCaracter} )  {
+      my $MaxLength = $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick};
+      my $WidthData = $CompositeWidget->{RefInfoDummies}->{Legend}{WidthOneCaracter} * length $data;
+      my $NbrCharacter = int( $MaxLength / $CompositeWidget->{RefInfoDummies}->{Legend}{WidthOneCaracter} );    
+      if ( defined $MaxLength and $WidthData > $MaxLength ) {      
+        $data =~ s/^(.{$NbrCharacter}).*/$1/;
+        $data .= '...';        
+      }
+    }
+
       $CompositeWidget->createText(
         $XtickxValue,
         $XtickyValue,
@@ -890,7 +905,9 @@ sub _xtick {
           $CompositeWidget->{RefInfoDummies}->{TAGS}{xValues},
           $CompositeWidget->{RefInfoDummies}->{TAGS}{AllValues}
         ],
+#        %option,
       );
+
     }
     $XtickxValue
       += $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick};
@@ -1044,8 +1061,6 @@ sub _ViewData {
     $SpacingPixel = $WidthBar / 4;
   }
 
-  scalar @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[0] };
-
   my $YMin0 = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0};
   my $XMin0 = $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0};
   my $YaxisHeightUnit
@@ -1060,7 +1075,7 @@ sub _ViewData {
     my $NumberData = 1;    # Number of data
                            # each boxplot
     foreach my $Refdata ( @{$RefArrayData} ) {
-      unless ( defined $Refdata and scalar @$Refdata > 3 ) {
+      unless ( defined $Refdata and scalar @{$Refdata} > 3 ) {
         $NumberData++;
         next;
       }
@@ -1114,11 +1129,12 @@ sub _ViewData {
         $Message .= " : \n";
       }
       $Message .= <<"MESSAGE";
+  Sample : $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[0]->[$NumberData-1]
   Largest non-outlier : $LnonOutlier
-  75th percentile (Q3) : $Quantile3
-  Median (Q2) : $Quantile2
+  75th percentile : $Quantile3
+  Median : $Quantile2
   Mean : $moy
-  25th percentile (Q1) : $Quantile1
+  25th percentile : $Quantile1
   Smallest non-outlier : $SnonOutlier
 MESSAGE
       $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$tag}
@@ -1246,11 +1262,9 @@ sub plot {
     $CompositeWidget->_error("You must have at least 2 arrays");
     return;
   }
-
   # Check legend and data size
-  if ( my $RefLegend
-    = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} )
-  {
+  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} > 0 ) {
+    my $RefLegend = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend};
     unless (
       $CompositeWidget->_CheckSizeLengendAndData( $RefData, $RefLegend ) )
     {
@@ -1362,7 +1376,7 @@ sub _GraphForDummiesConstruction {
     $CompositeWidget->_ytick();
   }
 
-  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} ) {
+  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} > 0 ) {
     $CompositeWidget->_ViewLegend();
     $CompositeWidget->_Balloon();
   }
@@ -1566,7 +1580,7 @@ sub add_data {
   my ( $CompositeWidget, $Refdata, $legend ) = @_;
 
   push( @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} }, $Refdata );
-  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} ) {
+  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} > 0 ) {
     push @{ $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} }, $legend;
   }
 
@@ -1620,7 +1634,6 @@ sub set_balloon {
 
 1;
 __END__
-
 
 =head1 NAME
 
@@ -1705,7 +1718,7 @@ B<-yscrollincrement>
 
 =item Name:	B<Spacingbar>
 
-=item Class:	B<SpacingBar>
+=item Class: B<SpacingBar>
 
 =item Switch:	B<-spacingbar>
 
@@ -1722,65 +1735,66 @@ Default : B<1>
 Many options allow you to configure your chart as you want. 
 The default configuration is already OK, but you can change it.
 these are the same options as L<Tk::ForDummies::Graph::Lines> module
-	
+
+
 =over 4
 
 =item Name:	B<Title>
 
-=item Class:	B<Title>
+=item Class: B<Title>
 
 =item Switch:	B<-title>
 
 Title of your graph.
-  
+
  -title => "My graph title",
 
 Default : B<undef>
 
 =item Name:	B<Titlecolor>
 
-=item Class:	B<TitleColor>
+=item Class: B<TitleColor>
 
 =item Switch:	B<-titlecolor>
 
 Title color of your graph.
-  
+
  -titlecolor => "red",
 
 Default : B<black>
 
 =item Name:	B<Titlefont>
 
-=item Class:	B<TitleFont>
+=item Class: B<TitleFont>
 
 =item Switch:	B<-titlefont>
 
 Set the font for the title text. See also textfont option. 
-  
+
  -titlefont => "Times 15 {normal}",
 
 Default : B<{Times} 12 {bold}>
 
 =item Name:	B<Titleheight>
 
-=item Class:	B<TitleHeight>
+=item Class: B<TitleHeight>
 
 =item Switch:	B<-titleheight>
 
 Height for title graph space.
-  
+
  -titleheight => 100,
 
 Default : B<40>
 
 =item Name:	B<Xlabel>
 
-=item Class:	B<XLabel>
+=item Class: B<XLabel>
 
 =item Switch:	B<-xlabel>
 
 The label to be printed just below the x axis.
-  
+
  -xlabel => "X label",
 
 Default : B<undef>
@@ -1799,38 +1813,38 @@ Default : B<black>
 
 =item Name:	B<Xlabelfont>
 
-=item Class:	B<XLabelFont>
+=item Class: B<XLabelFont>
 
 =item Switch:	B<-xlabelfont>
 
 Set the font for the x label text. See also textfont option.
-  
+
  -xlabelfont => "Times 15 {normal}",
 
 Default : B<{Times} 10 {bold}>
 
 =item Name:	B<Xlabelheight>
 
-=item Class:	B<XLabelHeight>
+=item Class: B<XLabelHeight>
 
 =item Switch:	B<-xlabelheight>
 
 Height for x label space.
-  
+
  -xlabelheight => 50,
 
 Default : B<30>
 
 =item Name:	B<Xlabelskip>
 
-=item Class:	B<XLabelSkip>
+=item Class: B<XLabelSkip>
 
 =item Switch:	B<-xlabelskip>
 
 Print every xlabelskip number under the tick on the x axis. If you have a dataset wich contain many points, 
 the tick and x values will be overwrite on the chart. This option can help you to clarify your chart.
 Eg: 
-  
+
   ["leg1", "leg2", ..."leg1000", "data1", ... "data1000"] => 2000 ticks and text values on x axis.
   -xlabelskip => 1 => ["leg1", "leg3", "leg5", ...] => 1000 ticks will be display.
 
@@ -1842,12 +1856,12 @@ Default : B<0>
 
 =item Name:	B<Xvaluecolor>
 
-=item Class:	B<XValueColor>
+=item Class: B<XValueColor>
 
 =item Switch:	B<-xvaluecolor>
 
 Set x values colors. See also textcolor option.
- 
+
  -xvaluecolor => "red",
 
 Default : B<black>
@@ -1859,7 +1873,7 @@ Default : B<black>
 =item Switch:	B<-xvaluespace>
 
 Width for x values space.
- 
+
  -xvaluespace => 50,
 
 Default : B<30>
@@ -1873,11 +1887,10 @@ Default : B<30>
 View the x values which will match with regex. It allows you to display tick on x axis and values 
 that you want. You can combine it with -xlabelskip to perform what you want to display if you have many dataset.
 
- 
  ...
  ["leg1", "leg2", "data1", "data2", "symb1", "symb2"]
  ...
- 
+
  -xvaluesregex => qr/leg/i,
 
 On the graph, just leg1 and leg2 will be display.
@@ -1891,7 +1904,7 @@ Default : B<qr/.+/>
 =item Switch:	B<-ylabel>
 
 The labels to be printed next to y axis.
- 
+
  -ylabel => "Y label",
 
 Default : B<undef>
@@ -1903,7 +1916,7 @@ Default : B<undef>
 =item Switch:	B<-ylabelcolor>
 
 Set the color of y label. See also textcolor option. 
- 
+
  -ylabelcolor => 'red',
 
 Default : B<black>
@@ -1915,7 +1928,7 @@ Default : B<black>
 =item Switch:	B<-ylabelfont>
 
 Set the font for the y label text. See also textfont option. 
- 
+
  -ylabelfont => "Times 15 {normal}",
 
 Default : B<{Times} 10 {bold}>
@@ -1927,7 +1940,7 @@ Default : B<{Times} 10 {bold}>
 =item Switch:	B<-ylabelwidth>
 
 Width of space for y label.
- 
+
  -ylabelwidth => 30,
 
 Default : B<5>
@@ -1939,99 +1952,98 @@ Default : B<5>
 =item Switch:	B<-yvaluecolor>
 
 Set the color of y values. See also valuecolor option.
- 
+
  -yvaluecolor => "red",
 
 Default : B<black>
 
 =item Name:	B<Labelscolor>
 
-=item Class:	B<LabelsColor>
+=item Class: B<LabelsColor>
 
 =item Switch:	B<-labelscolor>
 
 Combine xlabelcolor and ylabelcolor options. See also textcolor option.
- 
+
  -labelscolor => "red",
 
 Default : B<undef>
 
 =item Name:	B<Valuescolor>
 
-=item Class:	B<ValuesColor>
+=item Class: B<ValuesColor>
 
 =item Switch:	B<-valuescolor>
 
 Set the color of x, y values in axis. It combines xvaluecolor and yvaluecolor options.
- 
+
  -valuescolor => "red",
 
 Default : B<undef>
 
 =item Name:	B<Textcolor>
 
-=item Class:	B<TextColor>
+=item Class: B<TextColor>
 
 =item Switch:	B<-textcolor>
 
 Set the color of x, y labels and title text. It combines titlecolor, xlabelcolor and ylabelcolor options.
- 
+
  -textcolor => "red",
 
 Default : B<undef>
 
 =item Name:	B<Textfont>
 
-=item Class:	B<TextFont>
+=item Class: B<TextFont>
 
 =item Switch:	B<-textfont>
 
 Set the font of x, y labels and title text. It combines titlefont, xlabelfont and ylabelfont options.
- 
+
  -textfont => "Times 15 {normal}",
 
 Default : B<undef>
 
 =item Name:	B<Longticks>
 
-=item Class:	B<LongTicks>
+=item Class: B<LongTicks>
 
 =item Switch:	B<-longticks>
 
 If long_ticks is a true value, ticks will be drawn the same length as the axes.
- 
+
  -longticks => 1, #  0 or 1
 
 Default : B<0>
 
-
 =item Name:	B<Boxaxis>
 
-=item Class:	B<BoxAxis>
+=item Class: B<BoxAxis>
 
 =item Switch:	B<-boxaxis>
 
 Draw the axes as a box.
- 
+
  -boxaxis => 0, #  0 or 1
 
 Default : B<1>
 
 =item Name:	B<Noaxis>
 
-=item Class:	B<NoAxis>
+=item Class: B<NoAxis>
 
 =item Switch:	B<-noaxis>
 
 Hide the axis with ticks and values ticks.
- 
+
  -noaxis => 1, # 0 or 1
 
 Default : B<0>
 
 =item Name:	B<Zeroaxis>
 
-=item Class:	B<ZeroAxis>
+=item Class: B<ZeroAxis>
 
 =item Switch:	B<-zeroaxis>
 
@@ -2078,26 +2090,26 @@ Default : B<5>
 =item Switch:	B<-xtickview>
 
 View x ticks of graph.
- 
+
  -xtickview => 0, # 0 or 1
 
 Default : B<1>
 
 =item Name:	B<Yticknumber>
 
-=item Class:	B<YTickNumber>
+=item Class: B<YTickNumber>
 
 =item Switch:	B<-yticknumber>
 
 Number of ticks to print for the Y axis.
- 
+
  -yticknumber => 10,
 
 Default : B<4>
 
 =item Name:	B<Ytickwidth>
 
-=item Class:	B<YtickWidth>
+=item Class: B<YtickWidth>
 
 =item Switch:	B<-ytickwidth>
 
@@ -2109,48 +2121,48 @@ Default : B<5>
 
 =item Name:	B<Ytickview>
 
-=item Class:	B<YTickView>
+=item Class: B<YTickView>
 
 =item Switch:	B<-ytickview>
 
 View y ticks of graph.
- 
+
  -ytickview => 0, # 0 or 1
 
 Default : B<1>
 
 =item Name:	B<Alltickview>
 
-=item Class:	B<AllTickView>
+=item Class: B<AllTickView>
 
 =item Switch:	B<-alltickview>
 
 View all ticks of graph. Combines xtickview and ytickview options;
- 
+
  -alltickview => 0, # 0 or 1
 
 Default : B<undef>
 
 =item Name:	B<Linewidth>
 
-=item Class:	B<LineWidth>
+=item Class: B<LineWidth>
 
 =item Switch:	B<-linewidth>
 
 Set width of all lines graph of dataset.
- 
+
  -linewidth => 10,
 
 Default : B<1>
 
 =item Name:	B<Colordata>
 
-=item Class:	B<ColorData>
+=item Class: B<ColorData>
 
 =item Switch:	B<-colordata>
 
 This controls the colors of the lines. This should be a reference to an array of color names.
- 
+
  -colordata => [ qw(green pink blue cyan) ],
 
 Default : 
@@ -2163,6 +2175,28 @@ Default :
 
 The default array contains 24 colors. If you have more than 24 samples, the next line 
 will have the color of the first array case (red).
+
+=back
+
+=head1 WIDGET-SPECIFIC OPTIONS like Tk::ForDummies::Graph::Lines
+
+Many options allow you to configure your chart as you want. 
+The default configuration is already OK, but you can change it.
+these are the same options as L<Tk::ForDummies::Graph::Lines> module
+
+=over 4
+
+=item Name:	B<Title>
+
+=item Class: B<Title>
+
+=item Switch:	B<-title>
+
+Title of your graph.
+
+ -title => "My graph title",
+
+Default : B<undef>
 
 =back
 
@@ -2207,7 +2241,6 @@ I<$legend>
  my @NewData = (1,10,12,5,4);
  my $legend = "New data set";
  $GraphDummies>->(\@NewData, $legend);
-  
 
 =back
 
@@ -2279,7 +2312,6 @@ If you have a no real number value in a dataset, it will be replaced by a consta
 
 Default : B<0>
 
-
  my @data = (
       [     '1st',   '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th' ],
       [         1,    "--",     5,     6,     3,   1.5,     1,     3,     4 ],
@@ -2292,7 +2324,6 @@ Default : B<0>
   # mistake, -- and NA will be replace by 12
 
 -substitutionvalue have to be a real number (Eg : 12, .25, 02.25, 5.2e+11, ...) 
-  
 
 =back
 
@@ -2362,7 +2393,7 @@ Default : -colordatamouse => B<[ '#7F9010', '#CB89D3' ]>
 
 =item *
 
--morepixelselected => I<boolean>
+-morepixelselected => I<integer>
 
 When the mouse cursor passes over an entry in the legend, 
 the line width increase. 
@@ -2370,7 +2401,6 @@ the line width increase.
  -morepixelselected => 5,
 
 Default : B<1>
-
 
 =back
 
@@ -2438,7 +2468,7 @@ Default : B<1>
 
 =item *
 
--legendmarkerheight => I<boolean>
+-legendmarkerheight => I<integer>
 
 Change the heigth of marker for each legend entry. 
 
@@ -2448,7 +2478,7 @@ Default : B<10>
 
 =item *
 
--legendmarkerwidth => I<boolean>
+-legendmarkerwidth => I<integer>
 
 Change the width of marker for each legend entry. 
 
@@ -2458,7 +2488,7 @@ Default : B<10>
 
 =item *
 
--heighttitle => I<boolean>
+-heighttitle => I<integer>
 
 Change the height title legend space. 
 
@@ -2504,6 +2534,7 @@ zoom the chart the y axis.
  ...
  $GraphDummies->zoom(100); # new size : 300*300
 
+
 =head1 AUTHOR
 
 Djibril Ousmanou, C<< <djibel at cpan.org> >>
@@ -2525,7 +2556,6 @@ See L<Tk::ForDummies::Graph>, L<Tk::ForDummies::Graph::FAQ>, L<GD::Graph>, L<Tk:
 You can find documentation for this module with the perldoc command.
 
     perldoc Tk::ForDummies::Graph::Boxplots
-
 
 You can also look for information at:
 
@@ -2557,5 +2587,8 @@ Copyright 2009 Djibril Ousmanou, all rights reserved.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
-
 =cut
+
+
+
+
