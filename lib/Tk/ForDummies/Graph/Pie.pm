@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 13/04/2009 12:31:47
+# Update    : 12/05/2009 15:53:31
 # AIM       : Create pie chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.04';
+$VERSION = '1.05';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -38,6 +38,7 @@ sub Populate {
       'PASSIVE',   'Titlefont',
       'TitleFont', $CompositeWidget->{RefInfoDummies}->{Font}{DefaultTitle}
     ],
+    -titleposition => [ 'PASSIVE', 'Titleposition', 'TitlePosition', 'center' ],
     -width => [
       'SELF',  'width',
       'Width', $CompositeWidget->{RefInfoDummies}->{Canvas}{Width}
@@ -144,6 +145,7 @@ sub _title {
   my $Title      = $CompositeWidget->cget( -title );
   my $TitleColor = $CompositeWidget->cget( -titlecolor );
   my $TitleFont  = $CompositeWidget->cget( -titlefont );
+  my $titleposition = $CompositeWidget->cget( -titleposition );
 
   # Title verification
   unless ($Title) {
@@ -164,13 +166,29 @@ sub _title {
     + ( $CompositeWidget->{RefInfoDummies}->{Title}{Height} / 2 );
 
   # display title
+  my $anchor;
+  if ( $titleposition eq 'left' ) {
+    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex} = $WidthEmptyBeforeTitle;
+    $anchor = 'nw';
+    $CompositeWidget->{RefInfoDummies}->{Title}{'-width'} = 0;
+  }
+  elsif  ( $titleposition eq 'right' ) {
+    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex} = $WidthEmptyBeforeTitle + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width};
+    $CompositeWidget->{RefInfoDummies}->{Title}{'-width'} = 0;
+    $anchor = 'ne';
+  }
+  else  {
+    $anchor = 'center';
+  }
   $CompositeWidget->{RefInfoDummies}->{Title}{IdTitre}
     = $CompositeWidget->createText(
     $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex},
     $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrey},
     -text  => $Title,
     -width => $CompositeWidget->{RefInfoDummies}->{Pie}{Width},
+    -anchor => $anchor,
     );
+    return if ( $anchor =~ m{^left|right$} );
 
   # get title information
   my ($Height);
@@ -617,6 +635,18 @@ Title of your graph.
  -title => "My pie graph title",
 
 Default : B<undef>
+
+=item Name:	B<Titleposition>
+
+=item Class:	B<TitlePosition>
+
+=item Switch:	B<-titleposition>
+
+Position of title : B<center>, B<left> or B<right>
+  
+ -titleposition => 'left',
+
+Default : B<center>
 
 =item Name:	B<Titlecolor>
 

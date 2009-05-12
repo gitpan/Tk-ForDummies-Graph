@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 13/04/2009 02:08:45
+# Update    : 12/05/2009 15:52:07
 # AIM       : Create area chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.03';
+$VERSION = '1.05';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -67,6 +67,8 @@ sub Populate {
       'PASSIVE', 'Xvaluespace', 'XValueSpace',
       $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{ScaleValuesHeight}
     ],
+    -xvalueview    => [ 'PASSIVE', 'Xvalueview', 'XValueView', 1 ],
+    -yvalueview     => [ 'PASSIVE', 'Yvalueview', 'YValueView', 1 ],    
     -xvaluesregex => [ 'PASSIVE', 'Xvaluesregex', 'XValuesRegex', qr/.+/ ],
 
     -ylabel      => [ 'PASSIVE', 'Ylabel',      'YLabel',      undef ],
@@ -92,7 +94,7 @@ sub Populate {
     -boxaxis      => [ 'PASSIVE', 'Boxaxis',      'BoxAxis',      0 ],
     -noaxis       => [ 'PASSIVE', 'Noaxis',       'NoAxis',       0 ],
     -zeroaxisonly => [ 'PASSIVE', 'Zeroaxisonly', 'ZeroAxisOnly', 0 ],
-    -zeroaxis     => [ 'PASSIVE', 'Zeroaxis',     'ZeroAxis',     1 ],
+    -zeroaxis     => [ 'PASSIVE', 'Zeroaxis',     'ZeroAxis',     0 ],
 
     -xtickheight => [
       'PASSIVE', 'Xtickheight', 'XTickHeight',
@@ -544,6 +546,7 @@ sub _title {
   my $Title      = $CompositeWidget->cget( -title );
   my $TitleColor = $CompositeWidget->cget( -titlecolor );
   my $TitleFont  = $CompositeWidget->cget( -titlefont );
+  my $titleposition = $CompositeWidget->cget( -titleposition );
 
   # Title verification
   unless ($Title) {
@@ -566,18 +569,34 @@ sub _title {
     + ( $CompositeWidget->{RefInfoDummies}->{Title}{Height} / 2 );
 
   # -width to createText
-  $CompositeWidget->{RefInfoDummies}->{Title}{'-width'}
-    = $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width};
+  $CompositeWidget->{RefInfoDummies}->{Title}{'-width'} = $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width};
 
+  
   # display title
+  my $anchor;
+  if ( $titleposition eq 'left' ) {
+    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex} = $WidthEmptyBeforeTitle;
+    $anchor = 'nw';
+    $CompositeWidget->{RefInfoDummies}->{Title}{'-width'} = 0;
+  }
+  elsif  ( $titleposition eq 'right' ) {
+    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex} = $WidthEmptyBeforeTitle + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width};
+    $CompositeWidget->{RefInfoDummies}->{Title}{'-width'} = 0;
+    $anchor = 'ne';
+  }
+  else  {
+    $anchor = 'center';
+  }
   $CompositeWidget->{RefInfoDummies}->{Title}{IdTitre}
     = $CompositeWidget->createText(
     $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex},
     $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrey},
     -text  => $Title,
     -width => $CompositeWidget->{RefInfoDummies}->{Title}{'-width'},
+    -anchor => $anchor,
     );
-
+    return if ( $anchor =~ m{^left|right$} );
+  
   # get title information
   my ($Height);
   ( $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex},
@@ -1240,6 +1259,12 @@ sub _GraphForDummiesConstruction {
     $CompositeWidget->delete(
       $CompositeWidget->{RefInfoDummies}->{TAGS}{xValues} );
   }
+  if ( $CompositeWidget->cget( -xvalueview ) == 0 ) {
+    $CompositeWidget->delete($CompositeWidget->{RefInfoDummies}->{TAGS}{xValues} );
+  }
+  if ( $CompositeWidget->cget( -yvalueview ) == 0 ) {
+    $CompositeWidget->delete($CompositeWidget->{RefInfoDummies}->{TAGS}{yValues} );
+  }
 
   # ticks
   my $alltickview = $CompositeWidget->cget( -alltickview );
@@ -1566,6 +1591,18 @@ Title of your graph.
 
 Default : B<undef>
 
+=item Name:	B<Titleposition>
+
+=item Class:	B<TitlePosition>
+
+=item Switch:	B<-titleposition>
+
+Position of title : B<center>, B<left> or B<right>
+  
+ -titleposition => 'left',
+
+Default : B<center>
+
 =item Name:	B<Titlecolor>
 
 =item Class:	B<TitleColor>
@@ -1693,6 +1730,18 @@ Width for x values space.
 
 Default : B<30>
 
+=item Name:	B<Xvalueview>
+
+=item Class:	B<XvalueView>
+
+=item Switch:	B<-xvalueview>
+
+View values on x axis.
+ 
+ -xvalueview => 0, # 0 or 1
+
+Default : B<1>
+
 =item Name:	B<Xvaluesregex>
 
 =item Class:	B<XValuesRegex>
@@ -1772,6 +1821,18 @@ Set the color of y values. See also valuecolor option.
  -yvaluecolor => "red",
 
 Default : B<black>
+
+=item Name:	B<Yvalueview>
+
+=item Class:	B<YvalueView>
+
+=item Switch:	B<-yvalueview>
+
+View values on y axis.
+ 
+ -yvalueview => 0, # 0 or 1
+
+Default : B<1>
 
 =item Name:	B<Labelscolor>
 
@@ -1867,7 +1928,7 @@ Default : B<0>
 
 =item Switch:	B<-zeroaxis>
 
-If set to a true value, the axis for y values of 0 will always be drawn. 
+If set to a true value, the axis for y values will only be drawn. 
 
  -zeroaxis => 0, # 0 or 1
 
@@ -2005,11 +2066,11 @@ Your chart will be updade.
 I<Data array reference>
 
 Fill an array of arrays with the values of the datasets (I<\@data>). 
-Make sure that every array has the same size, otherwise Tk::ForDummies::Graph::Areas 
+Make sure that every array has the same size, otherwise Tk::ForDummies::Graph::Lines 
 will complain and refuse to compile the graph.
 
  my @NewData = (1,10,12,5,4);
- $GraphDummies>->(\@NewData);
+ $GraphDummies->add_data(\@NewData);
 
 If your last chart has a legend, you have to add a legend entry for the new dataset. Otherwise, 
 the legend chart will not be display (see below).
@@ -2020,8 +2081,7 @@ I<$legend>
 
  my @NewData = (1,10,12,5,4);
  my $legend = "New data set";
- $GraphDummies>->(\@NewData, $legend);
-  
+ $GraphDummies->add_data(\@NewData, $legend);
 
 =back
 
