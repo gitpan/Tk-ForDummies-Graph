@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tk::ForDummies::Graph::Splines - To create lines chart as Bézier curve. 
+Tk::ForDummies::Graph::Splines - To create lines chart as BE<eacute>zier curve. 
 
 =head1 SYNOPSIS
 
@@ -8,13 +8,14 @@ Do not use this module. Use L<Tk::ForDummies::Graph::Lines>.
 
 =head1 DESCRIPTION
 
-You have to use B<Tk::ForDummies::Graph::Lines> module and set -smoothline option to 1.
+You have to use B<Tk::ForDummies::Graph::Lines> module and use 
+B<-spline> and B<-bezier> options.
 
 See L<Tk::ForDummies::Graph::Lines/"Options for all lines graph"> and 
-L<Tk::ForDummies::Graph::Lines/"Options for spline lines graph">
+L<Tk::ForDummies::Graph::Lines/"Options for spline graph">
 
 
-B<Be careful>, a Bézier curve (L<http://en.wikipedia.org/wiki/Bezier_curve>) does not touch all points of dataset, just the extremity points.
+B<Be careful>, a BE<eacute>zier curve (L<http://en.wikipedia.org/wiki/Bezier_curve>) does not touch all points of dataset, just the extremity points.
 
 
 =head1 EXAMPLES
@@ -26,24 +27,27 @@ B<Be careful>, a Bézier curve (L<http://en.wikipedia.org/wiki/Bezier_curve>) do
   use Tk::ForDummies::Graph::Lines;
 
   my $mw = new MainWindow(
-    -title      => 'Splines example',
+    -title      => 'bezier curve examples',
     -background => 'white',
   );
   my $GraphDummies = $mw->Lines(
-    -title  => 'My chart title',
-    -xlabel => 'X Label',
-    -ylabel => 'Y Label',
-    -smoothline => 1,
+    -title      => 'bezier curves',
+    -xlabel     => 'X Label',
+    -ylabel     => 'Y Label',
+    -background => 'snow',
+    -spline => 1,
+    -bezier => 1,     
+    -linewidth  => 2,
   )->pack(qw / -fill both -expand 1 /);
-
+  
   my @data = (
-    [ '1st', '2nd', '3rd' ],
-    [ 10,     30,     10, ],
-    [ 10,     0,      10, ],
-    [ 20,     10,     30, ],
+    [ '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th' ],
+    [ 10,    30,    20,    30,    5,     41,    1,     23 ],
+    [ 10,    5,     10,    0,     17,    2,     40,    23 ],
+    [ 20,    10,    12,    20,    30,    10,    35,    12 ],
+  
   );
-
-
+ 
   # Add a legend to the chart
   my @Legends = ( 'legend 1', 'legend 2', 'legend 3' );
   $GraphDummies->set_legend(

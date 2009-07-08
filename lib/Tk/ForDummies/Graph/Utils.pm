@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph::Utils;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 07/04/2009 11:54:00
+# Update    : 07/07/2009 17:01:00
 # AIM       : Private functions and public shared methods
 #             between Tk::ForDummies::Graph modules
 #==================================================================
@@ -12,14 +12,14 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 use Exporter;
 
 my @ModuleToExport = qw (
   _MaxArray   _MinArray   _isANumber _roundValue
   zoom        zoomx      zoomy       clearchart
-  _Quantile   _moy       _NonOutlier
+  _Quantile   _moy       _NonOutlier _GetControlPoints
 );
 
 our @ISA         = qw(Exporter);
@@ -207,6 +207,70 @@ sub _isANumber {
   }
 
   return;
+}
+
+sub _GetControlPoints {
+  my ( $CompositeWidget, $RefArray ) = @_;
+
+  my $NbrElt = scalar @{$RefArray};
+
+  unless ( $NbrElt > 4 ) {
+    return $RefArray;
+  }
+
+  # First element
+  my @AllControlPoints = ( $RefArray->[0], $RefArray->[1] );
+
+  for ( my $i = 0; $i <= $NbrElt; $i = $i + 2 ) {
+    my @PointA = ( $RefArray->[$i], $RefArray->[ $i + 1 ] );
+    my @PointB = ( $RefArray->[ $i + 2 ], $RefArray->[ $i + 3 ] );
+    my @PointC = ( $RefArray->[ $i + 4 ], $RefArray->[ $i + 5 ] );
+
+    last unless ( defined $RefArray->[ $i + 5 ] );
+
+    # Equation between PointA and PointC
+    # Coef = (yc -ya) / (xc -xa)
+    # D1 : Y = Coef * X + (ya - (Coef * xa))
+    my $coef = ( $PointC[1] - $PointA[1] ) / ( $PointC[0] - $PointA[0] );
+
+    # Equation for D2 ligne paralelle to [AC] with PointB
+    # D2 : Y = (Coef * X) + yb - (coef * xb)
+    # The 2 control points
+    my $D2line = sub {
+      my ($x) = @_;
+
+      my $y = ( $coef * $x ) + $PointB[1] - ( $coef * $PointB[0] );
+      return $y;
+    };
+
+    # distance
+    my $distance = 0.95;
+
+    # xc1 = ( (xb - xa ) / 2 ) + xa
+    # yc1 = via D2
+    my @ControlPoint1;
+    $ControlPoint1[0] = ( $distance * ( $PointB[0] - $PointA[0] ) ) + $PointA[0];
+    $ControlPoint1[1] = $D2line->( $ControlPoint1[0] );
+    push( @AllControlPoints, ( $ControlPoint1[0], $ControlPoint1[1] ) );
+
+    # points
+    push( @AllControlPoints, ( $PointB[0], $PointB[1] ) );
+
+    # xc2 = ( (xc - xb ) / 2 ) + xb
+    # yc2 = via D2
+    my @ControlPoint2;
+    $ControlPoint2[0]
+      = ( ( 1 - $distance ) * ( $PointC[0] - $PointB[0] ) ) + $PointB[0];
+    $ControlPoint2[1] = $D2line->( $ControlPoint2[0] );
+
+    push( @AllControlPoints, ( $ControlPoint2[0], $ControlPoint2[1] ) );
+  }
+
+  push( @AllControlPoints,
+    $RefArray->[ $NbrElt - 2 ],
+    $RefArray->[ $NbrElt - 1 ] );
+
+  return \@AllControlPoints;
 }
 
 sub zoom {

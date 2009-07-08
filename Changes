@@ -1,7 +1,12 @@
 Revision history for Tk-ForDummies-Graph
 
+1.08 07/07/2009 21:45:08
+  New options in Tk::ForDummies::Graph::Lines module to create lines chart as Bézier curve :
+    -bezier replaces -smoothline (deprecated) and allows to create lines chart as Bézier curve.
+  New option -spline, the curve crosses by all points.
+
 1.07 13/05/2009
-  New option -titleposition -xvalueview and -yvalueview
+  New options -titleposition, -xvalueview and -yvalueview
   
 1.06 13/04/2009 16:54:30
   fix bugs in Tk-ForDummies-Graph modules (legend, ...)

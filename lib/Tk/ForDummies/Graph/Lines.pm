@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 12/05/2009 15:53:21
+# Update    : 07/07/2009 17:14:25
 # AIM       : Create line chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.06';
+$VERSION = '1.07';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -67,8 +67,8 @@ sub Populate {
       'PASSIVE', 'Xvaluespace', 'XValueSpace',
       $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{ScaleValuesHeight}
     ],
-    -xvalueview    => [ 'PASSIVE', 'Xvalueview', 'XValueView', 1 ],
-    -yvalueview     => [ 'PASSIVE', 'Yvalueview', 'YValueView', 1 ],    
+    -xvalueview   => [ 'PASSIVE', 'Xvalueview',   'XValueView',   1 ],
+    -yvalueview   => [ 'PASSIVE', 'Yvalueview',   'YValueView',   1 ],
     -xvaluesregex => [ 'PASSIVE', 'Xvaluesregex', 'XValuesRegex', qr/.+/ ],
 
     -ylabel      => [ 'PASSIVE', 'Ylabel',      'YLabel',      undef ],
@@ -132,6 +132,8 @@ sub Populate {
 
     # splined
     -smoothline => [ 'PASSIVE', 'Smoothline', 'SmoothLine', 0 ],
+    -bezier     => [ 'PASSIVE', 'Bezier',     'Bezier',     0 ],
+    -spline     => [ 'PASSIVE', 'Spline',     'Spline',     0 ],
 
     # points
     -pointline  => [ 'PASSIVE', 'Pointline',  'PointLine',  0 ],
@@ -218,11 +220,11 @@ sub _Balloon {
         if ( $CompositeWidget->itemcget( $LineTag, -fill ) ) {
           $CompositeWidget->itemconfigure( $LineTag, -fill => $OtherColor, );
         }
-        $CompositeWidget->itemconfigure( $LineTag, 
-          -width => $CompositeWidget->cget( -linewidth ) 
-            + $CompositeWidget->{RefInfoDummies}->{Balloon}{MorePixelSelected}, 
+        $CompositeWidget->itemconfigure( $LineTag,
+          -width => $CompositeWidget->cget( -linewidth )
+            + $CompositeWidget->{RefInfoDummies}->{Balloon}{MorePixelSelected},
         );
-          
+
         # if -outline enabled
         eval {
           if ( $CompositeWidget->itemcget( $LineTag, -outline ) )
@@ -243,10 +245,9 @@ sub _Balloon {
             -fill => $CompositeWidget->{RefInfoDummies}{Line}{$LineTag}{color},
           );
         }
-        $CompositeWidget->itemconfigure( $LineTag, 
-          -width => $CompositeWidget->cget( -linewidth ),
-        );
-                
+        $CompositeWidget->itemconfigure( $LineTag,
+          -width => $CompositeWidget->cget( -linewidth ), );
+
         eval {
           if ( $CompositeWidget->itemcget( $LineTag, -outline ) )
           {
@@ -350,8 +351,9 @@ sub set_legend {
 
   # Store Reference data
   $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} = $RefLegend;
-  $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} = scalar @{$RefLegend};
-  
+  $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend}
+    = scalar @{$RefLegend};
+
   return 1;
 }
 
@@ -498,13 +500,13 @@ sub _ViewLegend {
       my $Legende = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend}
         ->[$IndexLegend];
       my $NewLegend = $Legende;
-      
+
       if ( length $NewLegend > $MaxLength ) {
         $MaxLength -= 3;
         $NewLegend =~ s/^(.{$MaxLength}).*/$1/;
         $NewLegend .= '...';
       }
-      
+
       my $Id = $CompositeWidget->createText(
         $xText, $yText,
         -text   => $NewLegend,
@@ -573,9 +575,9 @@ sub _ViewLegend {
 sub _title {
   my ($CompositeWidget) = @_;
 
-  my $Title      = $CompositeWidget->cget( -title );
-  my $TitleColor = $CompositeWidget->cget( -titlecolor );
-  my $TitleFont  = $CompositeWidget->cget( -titlefont );
+  my $Title         = $CompositeWidget->cget( -title );
+  my $TitleColor    = $CompositeWidget->cget( -titlecolor );
+  my $TitleFont     = $CompositeWidget->cget( -titlefont );
   my $titleposition = $CompositeWidget->cget( -titleposition );
 
   # Title verification
@@ -605,27 +607,30 @@ sub _title {
   # display title
   my $anchor;
   if ( $titleposition eq 'left' ) {
-    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex} = $WidthEmptyBeforeTitle;
+    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex}
+      = $WidthEmptyBeforeTitle;
     $anchor = 'nw';
     $CompositeWidget->{RefInfoDummies}->{Title}{'-width'} = 0;
   }
-  elsif  ( $titleposition eq 'right' ) {
-    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex} = $WidthEmptyBeforeTitle + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width};
+  elsif ( $titleposition eq 'right' ) {
+    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex}
+      = $WidthEmptyBeforeTitle
+      + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width};
     $CompositeWidget->{RefInfoDummies}->{Title}{'-width'} = 0;
     $anchor = 'ne';
   }
-  else  {
+  else {
     $anchor = 'center';
   }
   $CompositeWidget->{RefInfoDummies}->{Title}{IdTitre}
     = $CompositeWidget->createText(
     $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex},
     $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrey},
-    -text  => $Title,
-    -width => $CompositeWidget->{RefInfoDummies}->{Title}{'-width'},
+    -text   => $Title,
+    -width  => $CompositeWidget->{RefInfoDummies}->{Title}{'-width'},
     -anchor => $anchor,
     );
-    return if ( $anchor =~ m{^left|right$} );
+  return if ( $anchor =~ m{^left|right$} );
 
   # get title information
   my ($Height);
@@ -1046,7 +1051,8 @@ sub _ViewDataLines {
   my ($CompositeWidget) = @_;
 
   my $legendmarkercolors = $CompositeWidget->cget( -colordata );
-  my $smoothline         = $CompositeWidget->cget( -smoothline );
+  my $bezier             = $CompositeWidget->cget( -bezier );
+  my $spline             = $CompositeWidget->cget( -spline );
 
   # number of value for x axis
   $CompositeWidget->{RefInfoDummies}->{Data}{xtickNumber}
@@ -1093,12 +1099,18 @@ sub _ViewDataLines {
     }
     my $tag = $IdData . $CompositeWidget->{RefInfoDummies}->{TAGS}{Line};
 
+    # Add control points
+    if ( $spline == 1 and $bezier == 1 ) {
+      my $RefPointsData = $CompositeWidget->_GetControlPoints( \@PointsData );
+      @PointsData = @{$RefPointsData};
+    }
+
     $CompositeWidget->createLine(
       @PointsData,
       -fill   => $LineColor,
       -tags   => [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
       -width  => $CompositeWidget->cget( -linewidth ),
-      -smooth => $smoothline,
+      -smooth => $bezier,
     );
 
     $CompositeWidget->{RefInfoDummies}{Line}{$tag}{color} = $LineColor;
@@ -2153,9 +2165,31 @@ will have the color of the first array case (red).
 
 =item Switch:	B<-smoothline>
 
-To create lines chart as B<Bézier curve>.
+This option is deprecated, please use B<-bezier>.
+
+=item Name:	B<Bezier>
+
+=item Class:	B<Bezier>
+
+=item Switch:	B<-bezier>
+
+To create lines chart as BE<eacute>zier curve. The curve crosses only by the 
+extreme points (the first and the last).
+
+ -bezier => 1, # 0 or 1
+
+Default : B<0>
+
+=item Name:	B<Spline>
+
+=item Class:	B<Spline>
+
+=item Switch:	B<-spline>
+
+To create lines chart as BE<eacute>zier curve. The curve crosses by all points. 
+The B<-bezier> option has to be set to B<1>.
  
- -smoothline => 1, # 0 or 1
+ -spline => 1, # 0 or 1
 
 Default : B<0>
 
@@ -2164,7 +2198,7 @@ Default : B<0>
 
 =head3 Options for point lines graph
 
-Theses option is specific to point lines chart creation.
+These options are specific to point lines chart creation.
 
 =over 4
 

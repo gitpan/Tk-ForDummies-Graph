@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 12/05/2009 18:02:24
+# Update    : 07/07/2009 21:39:24
 # AIM       : Private functions for Dummies Graph modules
 #==================================================================
 use strict;
@@ -11,7 +11,7 @@ use warnings;
 use Carp;
 use Tk::ForDummies::Graph::Utils qw (:DUMMIES);
 use vars qw($VERSION);
-$VERSION = '1.07';
+$VERSION = '1.08';
 
 use Exporter;
 
@@ -44,7 +44,7 @@ sub _InitConfig {
         CxlabelX          => undef,
         CxlabelY          => undef,
         Idxlabel          => undef,
-        IdxTick          => undef,
+        IdxTick           => undef,
         TagAxis0          => 'Axe00',
       },
       Yaxis => {
@@ -175,7 +175,8 @@ sub _TreatParameters {
     -alltickview  -xvaluevertical -titleheight  -gridview
     -ytickview    -overwrite      -cumulate     -spacingbar
     -showvalues   -startangle     -viewsection  -zeroaxis
-    -longticks    -smoothline     -pointline    -markersize
+    -longticks    -markersize     -pointline
+    -smoothline   -spline         -bezier
     /;
 
   foreach my $OptionName (@IntegerOption) {
@@ -223,6 +224,11 @@ sub _TreatParameters {
   if ( my $xtickheight = $CompositeWidget->cget( -xtickheight ) ) {
     $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{TickHeight}
       = $xtickheight;
+  }
+
+  # -smoothline deprecated, use -bezier
+  if ( my $smoothline = $CompositeWidget->cget( -smoothline ) ) {
+    $CompositeWidget->configure( -bezier => $smoothline );
   }
 
   if ( my $xvaluespace = $CompositeWidget->cget( -xvaluespace ) ) {
@@ -540,26 +546,21 @@ its entry will be turn to a color to help identify it.
 
 You can use 3 methods to zoom (vertically, horizontally or both).
 
-L<Tk::ForDummies::Graph::Lines>
+L<Tk::ForDummies::Graph::Lines>, 
+Extension of Canvas widget to create lines chart. 
+With this module it is possible to plot quantitative variables according to qualitative variables.
 
-    Extension of Canvas widget to create lines chart. 
-    With this module it is possible to plot quantitative variables according to qualitative variables.
+L<Tk::ForDummies::Graph::Splines>, 
+To create lines chart as B<B>E<eacute>B<zier curve>. 
 
-L<Tk::ForDummies::Graph::Splines>
+L<Tk::ForDummies::Graph::Areas>, 
+Extension of Canvas widget to create an area lines chart. 
 
-    To create lines chart as B<Bézier curve>. 
+L<Tk::ForDummies::Graph::Bars>,  
+Extension of Canvas widget to create bars chart with vertical bars.
 
-L<Tk::ForDummies::Graph::Areas>
-
-    Extension of Canvas widget to create an area lines chart. 
-
-L<Tk::ForDummies::Graph::Bars>
-
-    Extension of Canvas widget to create bars chart with vertical bars.
-
-L<Tk::ForDummies::Graph::Pie>
-
-    Extension of Canvas widget to create a pie chart. 
+L<Tk::ForDummies::Graph::Pie>,  
+Extension of Canvas widget to create a pie chart. 
 
 
 =head1 EXAMPLES

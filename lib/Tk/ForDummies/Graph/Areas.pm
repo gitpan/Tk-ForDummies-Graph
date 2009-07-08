@@ -67,8 +67,8 @@ sub Populate {
       'PASSIVE', 'Xvaluespace', 'XValueSpace',
       $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{ScaleValuesHeight}
     ],
-    -xvalueview    => [ 'PASSIVE', 'Xvalueview', 'XValueView', 1 ],
-    -yvalueview     => [ 'PASSIVE', 'Yvalueview', 'YValueView', 1 ],    
+    -xvalueview   => [ 'PASSIVE', 'Xvalueview',   'XValueView',   1 ],
+    -yvalueview   => [ 'PASSIVE', 'Yvalueview',   'YValueView',   1 ],
     -xvaluesregex => [ 'PASSIVE', 'Xvaluesregex', 'XValuesRegex', qr/.+/ ],
 
     -ylabel      => [ 'PASSIVE', 'Ylabel',      'YLabel',      undef ],
@@ -204,10 +204,11 @@ sub _Balloon {
           $OtherColor
             = $CompositeWidget->{RefInfoDummies}->{Balloon}{ColorData}->[1];
         }
-        $CompositeWidget->itemconfigure( $LineTag, 
-          -fill => $OtherColor, 
-          -width => $CompositeWidget->cget( -linewidth ) 
-            + $CompositeWidget->{RefInfoDummies}->{Balloon}{MorePixelSelected},     
+        $CompositeWidget->itemconfigure(
+          $LineTag,
+          -fill  => $OtherColor,
+          -width => $CompositeWidget->cget( -linewidth )
+            + $CompositeWidget->{RefInfoDummies}->{Balloon}{MorePixelSelected},
         );
       }
     );
@@ -216,11 +217,12 @@ sub _Balloon {
       $LegendTag,
       '<Leave>',
       sub {
-        $CompositeWidget->itemconfigure( $LineTag,
-          -fill => $CompositeWidget->{RefInfoDummies}{Line}{$LineTag}{color}, 
+        $CompositeWidget->itemconfigure(
+          $LineTag,
+          -fill  => $CompositeWidget->{RefInfoDummies}{Line}{$LineTag}{color},
           -width => $CompositeWidget->cget( -linewidth )
         );
-        
+
         # Allow dash line to display
         $CompositeWidget->itemconfigure(
           $CompositeWidget->{RefInfoDummies}->{TAGS}{DashLines},
@@ -320,8 +322,9 @@ sub set_legend {
 
   # Store Reference data
   $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} = $RefLegend;
-  $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} = scalar @{$RefLegend};
-  
+  $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend}
+    = scalar @{$RefLegend};
+
   return 1;
 }
 
@@ -468,7 +471,7 @@ sub _ViewLegend {
       my $Legende = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend}
         ->[$IndexLegend];
       my $NewLegend = $Legende;
-      
+
       if ( length $NewLegend > $MaxLength ) {
         $MaxLength -= 3;
         $NewLegend =~ s/^(.{$MaxLength}).*/$1/;
@@ -543,9 +546,9 @@ sub _ViewLegend {
 sub _title {
   my ($CompositeWidget) = @_;
 
-  my $Title      = $CompositeWidget->cget( -title );
-  my $TitleColor = $CompositeWidget->cget( -titlecolor );
-  my $TitleFont  = $CompositeWidget->cget( -titlefont );
+  my $Title         = $CompositeWidget->cget( -title );
+  my $TitleColor    = $CompositeWidget->cget( -titlecolor );
+  my $TitleFont     = $CompositeWidget->cget( -titlefont );
   my $titleposition = $CompositeWidget->cget( -titleposition );
 
   # Title verification
@@ -569,34 +572,37 @@ sub _title {
     + ( $CompositeWidget->{RefInfoDummies}->{Title}{Height} / 2 );
 
   # -width to createText
-  $CompositeWidget->{RefInfoDummies}->{Title}{'-width'} = $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width};
+  $CompositeWidget->{RefInfoDummies}->{Title}{'-width'}
+    = $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width};
 
-  
   # display title
   my $anchor;
   if ( $titleposition eq 'left' ) {
-    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex} = $WidthEmptyBeforeTitle;
+    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex}
+      = $WidthEmptyBeforeTitle;
     $anchor = 'nw';
     $CompositeWidget->{RefInfoDummies}->{Title}{'-width'} = 0;
   }
-  elsif  ( $titleposition eq 'right' ) {
-    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex} = $WidthEmptyBeforeTitle + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width};
+  elsif ( $titleposition eq 'right' ) {
+    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex}
+      = $WidthEmptyBeforeTitle
+      + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width};
     $CompositeWidget->{RefInfoDummies}->{Title}{'-width'} = 0;
     $anchor = 'ne';
   }
-  else  {
+  else {
     $anchor = 'center';
   }
   $CompositeWidget->{RefInfoDummies}->{Title}{IdTitre}
     = $CompositeWidget->createText(
     $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex},
     $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrey},
-    -text  => $Title,
-    -width => $CompositeWidget->{RefInfoDummies}->{Title}{'-width'},
+    -text   => $Title,
+    -width  => $CompositeWidget->{RefInfoDummies}->{Title}{'-width'},
     -anchor => $anchor,
     );
-    return if ( $anchor =~ m{^left|right$} );
-  
+  return if ( $anchor =~ m{^left|right$} );
+
   # get title information
   my ($Height);
   ( $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex},
@@ -1260,10 +1266,12 @@ sub _GraphForDummiesConstruction {
       $CompositeWidget->{RefInfoDummies}->{TAGS}{xValues} );
   }
   if ( $CompositeWidget->cget( -xvalueview ) == 0 ) {
-    $CompositeWidget->delete($CompositeWidget->{RefInfoDummies}->{TAGS}{xValues} );
+    $CompositeWidget->delete(
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{xValues} );
   }
   if ( $CompositeWidget->cget( -yvalueview ) == 0 ) {
-    $CompositeWidget->delete($CompositeWidget->{RefInfoDummies}->{TAGS}{yValues} );
+    $CompositeWidget->delete(
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{yValues} );
   }
 
   # ticks
