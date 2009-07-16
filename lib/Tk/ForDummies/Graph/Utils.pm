@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph::Utils;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 07/07/2009 17:01:00
+# Update    : 16/07/2009 21:15:30
 # AIM       : Private functions and public shared methods
 #             between Tk::ForDummies::Graph modules
 #==================================================================
@@ -12,7 +12,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = '1.02';
+$VERSION = '1.03';
 
 use Exporter;
 
@@ -131,6 +131,8 @@ sub _Median {
   return $median;
 }
 
+# The Quantile is calculated as in Excel  
+# In R language it is the equivalent of quantile type 7
 sub _Quantile {
   my ($RefValues) = @_;
 
@@ -150,8 +152,9 @@ sub _Quantile {
 
   # Number of data impair
   else {
-    @BottomTab = @values[ 0 .. $IndexCenter - 1 ];
-    @UpTab     = @values[ $IndexCenter + 1 .. $TotalValues - 1 ];
+    $IndexCenter = ( $TotalValues - 1 ) / 2;
+    @BottomTab   = @values[ 0 .. $IndexCenter  ];
+    @UpTab       = @values[ $IndexCenter  .. $TotalValues - 1 ];
   }
 
   $Quantile1 = _Median( \@BottomTab );

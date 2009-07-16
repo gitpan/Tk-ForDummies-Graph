@@ -1,8 +1,14 @@
 Revision history for Tk-ForDummies-Graph
 
+1.09 16/07/2009 20:26:56
+  The calcul of quantile (Q1, Q3) was wrong for impair numbers of data values
+  in Tk::ForDummies::Graph::Boxplots. The bug is fix now and the calcul 
+  is the same as in Excel, and in R language it is the equivalent of quantile type 7
+
+
 1.08 07/07/2009 21:45:08
-  New options in Tk::ForDummies::Graph::Lines module to create lines chart as Bézier curve :
-    -bezier replaces -smoothline (deprecated) and allows to create lines chart as Bézier curve.
+  New options in Tk::ForDummies::Graph::Lines module to create lines chart as Bezier curve :
+    -bezier replaces -smoothline (deprecated) and allows to create lines chart as Bezier curve.
   New option -spline, the curve crosses by all points.
 
 1.07 13/05/2009
@@ -28,7 +34,7 @@ Revision history for Tk-ForDummies-Graph
 1.03    31/03/2009 Tk::ForDummies::Graph::Areas added.
 
 1.02    30/03/2009 Tk::ForDummies::Graph::Pie updated.
-  option -startangle have been addes
+  option -startangle have been added
   
 1.01    30/03/2009 Change Read me.
 

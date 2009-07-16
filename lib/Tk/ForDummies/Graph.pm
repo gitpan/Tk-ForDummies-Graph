@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 07/07/2009 21:39:24
+# Update    : 16/07/2009 20:28:59
 # AIM       : Private functions for Dummies Graph modules
 #==================================================================
 use strict;
@@ -11,7 +11,7 @@ use warnings;
 use Carp;
 use Tk::ForDummies::Graph::Utils qw (:DUMMIES);
 use vars qw($VERSION);
-$VERSION = '1.08';
+$VERSION = '1.09';
 
 use Exporter;
 
@@ -562,6 +562,8 @@ Extension of Canvas widget to create bars chart with vertical bars.
 L<Tk::ForDummies::Graph::Pie>,  
 Extension of Canvas widget to create a pie chart. 
 
+L<Tk::ForDummies::Graph::Boxplots>,  
+Extension of Canvas widget to create boxplots chart. 
 
 =head1 EXAMPLES
 
