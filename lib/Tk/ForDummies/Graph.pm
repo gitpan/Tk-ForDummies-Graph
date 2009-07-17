@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 16/07/2009 20:28:59
+# Update    : 18/07/2009 00:17:27
 # AIM       : Private functions for Dummies Graph modules
 #==================================================================
 use strict;
@@ -11,7 +11,7 @@ use warnings;
 use Carp;
 use Tk::ForDummies::Graph::Utils qw (:DUMMIES);
 use vars qw($VERSION);
-$VERSION = '1.09';
+$VERSION = '1.10';
 
 use Exporter;
 

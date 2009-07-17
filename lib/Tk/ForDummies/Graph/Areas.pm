@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 12/05/2009 15:52:07
+# Update    : 18/07/2009 00:15:18
 # AIM       : Create area chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -458,6 +458,18 @@ sub _ViewLegend {
         $LineColor  = $legendmarkercolors->[$IndexColor];
       }
 
+      # Cut legend text if too long
+      my $Legende = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend}
+        ->[$IndexLegend];
+      next unless ( defined $Legende );
+      my $NewLegend = $Legende;
+
+      if ( length $NewLegend > $MaxLength ) {
+        $MaxLength -= 3;
+        $NewLegend =~ s/^(.{$MaxLength}).*/$1/;
+        $NewLegend .= '...';
+      }
+
       my $Tag = ( $IndexLegend + 1 )
         . $CompositeWidget->{RefInfoDummies}->{TAGS}{Legend};
       $CompositeWidget->createRectangle(
@@ -466,17 +478,6 @@ sub _ViewLegend {
         -outline => $LineColor,
         -tags    => $Tag,
       );
-
-      # Cut legend text if too long
-      my $Legende = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend}
-        ->[$IndexLegend];
-      my $NewLegend = $Legende;
-
-      if ( length $NewLegend > $MaxLength ) {
-        $MaxLength -= 3;
-        $NewLegend =~ s/^(.{$MaxLength}).*/$1/;
-        $NewLegend .= '...';
-      }
 
       my $Id = $CompositeWidget->createText(
         $xText, $yText,

@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph::Utils;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 16/07/2009 21:15:30
+# Update    : 17/07/2009 20:11:36
 # AIM       : Private functions and public shared methods
 #             between Tk::ForDummies::Graph modules
 #==================================================================
@@ -12,9 +12,10 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 use Exporter;
+use POSIX qw / floor /;
 
 my @ModuleToExport = qw (
   _MaxArray   _MinArray   _isANumber _roundValue
@@ -131,37 +132,33 @@ sub _Median {
   return $median;
 }
 
-# The Quantile is calculated as in Excel  
-# In R language it is the equivalent of quantile type 7
+# The Quantile is calculated as the same excel algorithm and
+# is equivalent to quantile type 7 in R quantile package.
 sub _Quantile {
-  my ($RefValues) = @_;
+  my ( $RefData, $QuantileNumber ) = @_;
 
-  # sort data
-  my @values = sort { $a <=> $b } @{$RefValues};
-  my $TotalValues = scalar(@values);
-  my ( $Quantile1, $Quantile2, $Quantile3 );
-  my ( @BottomTab, @UpTab );
+  my @Values = sort { $a <=> $b } @{$RefData};
+  $QuantileNumber = 1 unless ( defined $QuantileNumber );
 
-  my $IndexCenter = ( $TotalValues / 2 ) - 1;
+  return $Values[0] if ( $QuantileNumber == 0 );
 
-  # Number of data pair
-  if ( _isPair($TotalValues) ) {
-    @BottomTab = @values[ 0 .. $IndexCenter ];
-    @UpTab     = @values[ $IndexCenter + 1 .. $TotalValues - 1 ];
-  }
+  my $count = scalar @{$RefData};
 
-  # Number of data impair
-  else {
-    $IndexCenter = ( $TotalValues - 1 ) / 2;
-    @BottomTab   = @values[ 0 .. $IndexCenter  ];
-    @UpTab       = @values[ $IndexCenter  .. $TotalValues - 1 ];
-  }
+  return $Values[ $count - 1 ] if ( $QuantileNumber == 4 );
 
-  $Quantile1 = _Median( \@BottomTab );
-  $Quantile2 = _Median( \@values );
-  $Quantile3 = _Median( \@UpTab );
+  my $K_quantile = ( ( $QuantileNumber / 4 ) * ( $count - 1 ) + 1 );
+  my $F_quantile = $K_quantile - POSIX::floor($K_quantile);
+  $K_quantile = POSIX::floor($K_quantile);
 
-  return ( $Quantile1, $Quantile2, $Quantile3 );
+  # interpolation
+  my $aK_quantile     = $Values[ $K_quantile - 1 ];
+  my $aKPlus_quantile = $Values[$K_quantile];
+
+  # Calcul quantile
+  my $quantile
+    = $aK_quantile + ( $F_quantile * ( $aKPlus_quantile - $aK_quantile ) );
+
+  return $quantile;
 }
 
 sub _NonOutlier {
@@ -252,7 +249,8 @@ sub _GetControlPoints {
     # xc1 = ( (xb - xa ) / 2 ) + xa
     # yc1 = via D2
     my @ControlPoint1;
-    $ControlPoint1[0] = ( $distance * ( $PointB[0] - $PointA[0] ) ) + $PointA[0];
+    $ControlPoint1[0]
+      = ( $distance * ( $PointB[0] - $PointA[0] ) ) + $PointA[0];
     $ControlPoint1[1] = $D2line->( $ControlPoint1[0] );
     push( @AllControlPoints, ( $ControlPoint1[0], $ControlPoint1[1] ) );
 

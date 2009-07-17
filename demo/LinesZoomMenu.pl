@@ -40,7 +40,6 @@ $GraphDummies->set_balloon();
 $GraphDummies->plot( \@data );
 
 $GraphDummies->add_data( [ 1 .. 9 ], 'legend  4' );
-
 my $menu = Menu( $GraphDummies, [qw/30 50 80 100 150 200/] );
 
 MainLoop();

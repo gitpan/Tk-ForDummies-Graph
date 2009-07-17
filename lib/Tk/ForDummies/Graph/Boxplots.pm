@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2009
-# Update    : 12/05/2009 15:53:15
+# Update    : 17/07/2009 20:22:08
 # AIM       : Create bars chart
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -235,6 +235,57 @@ sub _Balloon {
   }
 
   return;
+}
+
+sub boxplot_information {
+  my ($CompositeWidget) = @_;
+
+  # Test if plot defined
+  unless ( defined $CompositeWidget->{RefInfoDummies}->{Data}{PlotDefined} ) {
+    $CompositeWidget->_error(
+      "You have to plot before get boxplots informations", 1 );
+  }
+
+  my @boxplot_information;
+  my @AllData = @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} };
+  my $NbrData = scalar @AllData;
+  my ( $dim1, $dim2 ) = ( 0, 0 );
+
+  # Read data and store information in A dimension table and hash.
+  foreach my $SampleNumber ( 1 .. $NbrData - 1 ) {
+
+    # Fisrt dimension
+    $dim1 = $SampleNumber - 1;
+    $dim2 = 0;
+
+    # Get information foreach sample
+    foreach my $RefData ( @{ $AllData[$SampleNumber] } ) {
+      my ( $Q1, $Q2, $Q3 ) = (
+        _Quantile( $RefData, 1 ),
+        _Quantile( $RefData, 2 ),
+        _Quantile( $RefData, 3 )
+      );
+      my ( $SnonOutlier, $LnonOutlier ) = _NonOutlier( $RefData, $Q1, $Q3 );
+      $boxplot_information[$dim1][$dim2] = {
+        mean                 => _moy($RefData),
+        median               => $Q2,
+        Q1                   => $Q1,
+        Q3                   => $Q3,
+        largest_non_outlier  => $LnonOutlier,
+        smallest_non_outlier => $SnonOutlier,
+        outliers             => [],
+      };
+
+      foreach my $value ( @{$RefData} ) {
+        if ( $value < $SnonOutlier or $value > $LnonOutlier ) {
+          push( @{ $boxplot_information[$dim1][$dim2]->{outliers} }, $value );
+        }
+      }
+      $dim2++;
+    }
+  }
+
+  return \@boxplot_information;
 }
 
 sub set_legend {
@@ -488,6 +539,19 @@ sub _ViewLegend {
         $IndexColor = 0;
         $LineColor  = $legendmarkercolors->[$IndexColor];
       }
+
+      # Cut legend text if too long
+      my $Legende = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend}
+        ->[$IndexLegend];
+      next unless ( defined $Legende );
+      my $NewLegend = $Legende;
+
+      if ( length $NewLegend > $MaxLength ) {
+        $MaxLength -= 3;
+        $NewLegend =~ s/^(.{$MaxLength}).*/$1/;
+        $NewLegend .= '...';
+      }
+
       my $Tag = ( $IndexLegend + 1 )
         . $CompositeWidget->{RefInfoDummies}->{TAGS}{Legend};
       $CompositeWidget->createRectangle(
@@ -496,17 +560,6 @@ sub _ViewLegend {
         -outline => $LineColor,
         -tags    => $Tag,
       );
-
-      # Cut legend text if too long
-      my $Legende = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend}
-        ->[$IndexLegend];
-      my $NewLegend = $Legende;
-
-      if ( length $NewLegend > $MaxLength ) {
-        $MaxLength -= 3;
-        $NewLegend =~ s/^(.{$MaxLength}).*/$1/;
-        $NewLegend .= '...';
-      }
 
       my $Id = $CompositeWidget->createText(
         $xText, $yText,
@@ -1116,7 +1169,9 @@ sub _ViewData {
       }
 
       # statistic calcul
-      my ( $Quantile1, $Quantile2, $Quantile3 ) = _Quantile($Refdata);
+      my $Quantile1 = _Quantile( $Refdata, 1 );
+      my $Quantile2 = _Quantile( $Refdata, 2 );
+      my $Quantile3 = _Quantile( $Refdata, 3 );
       my ( $SnonOutlier, $LnonOutlier )
         = _NonOutlier( $Refdata, $Quantile1, $Quantile3 );
       my $moy = _moy($Refdata);
@@ -1330,6 +1385,12 @@ sub plot {
 
       # substitute none real value
       foreach my $RefArray2 ( @{$RefArray} ) {
+
+        # First data must be an array ref
+        unless ( ref $RefArray2 eq "ARRAY" ) {
+          $CompositeWidget->_error(
+            "Each boxplot data must be in an array reference", 1 );
+        }
         foreach my $data ( @{$RefArray2} ) {
           if ( defined $data and !_isANumber($data) ) {
             $data
@@ -1897,8 +1958,9 @@ Default : B<30>
 
 =item Switch:	B<-xlabelskip>
 
-Print every xlabelskip number under the tick on the x axis. If you have a dataset wich contain many points, 
-the tick and x values will be overwrite on the chart. This option can help you to clarify your chart.
+Print every xlabelskip number under the tick on the x axis. If you have a 
+dataset wich contain many points, the tick and x values will be overwrite 
+on the chart. This option can help you to clarify your chart.
 Eg: 
 
   ["leg1", "leg2", ..."leg1000", "data1", ... "data1000"] => 2000 ticks and text values on x axis.
@@ -1952,8 +2014,9 @@ Default : B<1>
 
 =item Switch:	B<-xvaluesregex>
 
-View the x values which will match with regex. It allows you to display tick on x axis and values 
-that you want. You can combine it with -xlabelskip to perform what you want to display if you have many dataset.
+View the x values which will match with regex. It allows you to display 
+tick on x axis and values that you want. You can combine it with -xlabelskip 
+to perform what you want to display if you have many dataset.
 
  ...
  ["leg1", "leg2", "data1", "data2", "symb1", "symb2"]
@@ -2055,7 +2118,8 @@ Default : B<undef>
 
 =item Switch:	B<-valuescolor>
 
-Set the color of x, y values in axis. It combines xvaluecolor and yvaluecolor options.
+Set the color of x, y values in axis. It combines xvaluecolor 
+and yvaluecolor options.
 
  -valuescolor => "red",
 
@@ -2067,7 +2131,8 @@ Default : B<undef>
 
 =item Switch:	B<-textcolor>
 
-Set the color of x, y labels and title text. It combines titlecolor, xlabelcolor and ylabelcolor options.
+Set the color of x, y labels and title text. 
+It combines titlecolor, xlabelcolor and ylabelcolor options.
 
  -textcolor => "red",
 
@@ -2079,7 +2144,8 @@ Default : B<undef>
 
 =item Switch:	B<-textfont>
 
-Set the font of x, y labels and title text. It combines titlefont, xlabelfont and ylabelfont options.
+Set the font of x, y labels and title text. It combines titlefont, 
+xlabelfont and ylabelfont options.
 
  -textfont => "Times 15 {normal}",
 
@@ -2241,7 +2307,8 @@ Default : B<1>
 
 =item Switch:	B<-colordata>
 
-This controls the colors of the lines. This should be a reference to an array of color names.
+This controls the colors of the lines. This should be a reference 
+to an array of color names.
 
  -colordata => [ qw(green pink blue cyan) ],
 
@@ -2270,8 +2337,8 @@ to enquire and modify the options described above.
 
 =item I<$GraphDummies>->B<add_data>(I<\@NewData, ?$legend>)
 
-This method allows you to add data in your chart. If you have already plot data using plot method and 
-if you want to add new data, you can use this method.
+This method allows you to add data in your chart. If you have already plot data 
+using plot method and if you want to add new data, you can use this method.
 Your chart will be updade.
 
 =back
@@ -2283,22 +2350,27 @@ Your chart will be updade.
 I<Data array reference>
 
 Fill an array of arrays with the values of the datasets (I<\@data>). 
-Make sure that every array has the same size, otherwise Tk::ForDummies::Graph::Lines 
-will complain and refuse to compile the graph.
+Make sure that every array has the same size, otherwise 
+Tk::ForDummies::Graph::Lines will complain and refuse to compile the graph.
 
- my @NewData = (1,10,12,5,4);
- $GraphDummies->add_data(\@NewData);
+  my $one     = [ 210 .. 275 ];
+  my $two     = [ 180, 190, 200, 220, 235, 245 ];
+  my $three   = [ 40, 140 .. 150, 160 .. 180, 250 ];
+  my $four    = [ 100 .. 125, 136 .. 140 ];
+  my $five    = [ 10 .. 50, 100, 180 ];
+  my @NewData = ( $one, $two, $three, $four, $five );
+  $GraphDummies->add_data( \@NewData, 'new legend' );
 
-If your last chart has a legend, you have to add a legend entry for the new dataset. Otherwise, 
+If your last chart has a legend, you have to add a 
+legend entry for the new dataset. Otherwise, 
 the legend chart will not be display (see below).
 
 =item *
 
 I<$legend>
 
- my @NewData = (1,10,12,5,4);
- my $legend = "New data set";
- $GraphDummies->add_data(\@NewData, $legend);
+  my $legend = "New data set";
+  $GraphDummies->add_data(\@NewData, $legend);
 
 =back
 
@@ -2320,9 +2392,60 @@ last chart using the I<redraw method>.
 
 =item I<$GraphDummies>->B<delete_balloon>
 
-If you call this method, you disable help identification which has been enabled with set_balloon method.
+If you call this method, you disable help identification which has been enabled 
+with set_balloon method.
 
 =back
+
+=head2 boxplot_information
+
+=over 4
+
+=item I<$GraphDummies>->B<boxplot_information>
+
+Use this method if you want to get the informations about all boxplots 
+(25th percentile (Q1), 75th percentile (Q3), smallest non-outlier, 
+largest non-outlier, median and mean). This method returns an array reference. 
+The informations are stored in a hash reference.
+
+  my $ArrayRefInformation = $GraphDummies->boxplot_information();
+  
+  # Print information of boxplot @{$data[2][3]} (2th sample, 4th data )
+  print "Boxplot @{$data[2][3]} (2th sample, 4th data )\n";
+  print "Outliers : @{$ArrayRefInformation->[1][3]->{outliers}}\n";
+  print "25th percentile (Q1) : ", $ArrayRefInformation->[1][3]->{Q1}, "\n";
+  print "75th percentile (Q3) :",  $ArrayRefInformation->[1][3]->{Q3}, "\n";
+  print "Smallest non-outlier : ",
+    $ArrayRefInformation->[1][3]->{smallest_non_outlier}, "\n";
+  print "Largest non-outlier :", $ArrayRefInformation->[1][3]->{largest_non_outlier},
+    "\n";
+  print "Median : ", $ArrayRefInformation->[1][3]->{median}, "\n";
+  print "Mean : ",   $ArrayRefInformation->[1][3]->{mean},   "\n";
+
+if you have this data :
+
+  my @data = (
+      [ "1st", "2nd", "3rd",  "4th", "5th" ],
+      [ [ list data00 ],  [list data01],  [list data02], ],
+      [ [ list data10 ],  [list data11],  [list data12], ],
+      [ [ list data20 ],  [list data21],  [list data22], ],
+      #...
+    );
+
+To get the informations about boxplot B<list data21>, you have to read hash reference 
+like this :
+
+  $Ref_hash_information = $ArrayRefInformation->[2][1];
+  # 25th percentile (Q1)
+  print $Ref_hash_information->{Q1};
+  # Smallest non-outlier
+  print $Ref_hash_information->{smallest_non_outlier};
+
+The quantile is calculated with the same algorithm as Excel and type 
+7 quantile R package.
+
+=back
+
 
 =head2 plot
 
@@ -2390,10 +2513,11 @@ Default : B<0>
 Redraw the chart. 
 
 If you have used clearchart for any reason, it is possible to redraw the chart.
-Tk::ForDummies::Graph::Boxplots supports the configure and cget methods described in the L<Tk::options> manpage.
-If you use configure method to change a widget specific option, the modification will not be display. 
-If the chart was already displayed and if you not resize the widget, call B<redraw> method to 
-resolv the bug.
+Tk::ForDummies::Graph::Boxplots supports the configure and cget methods 
+described in the L<Tk::options> manpage. If you use configure method to change 
+a widget specific option, the modification will not be display. 
+If the chart was already displayed and if you not resize the widget, 
+call B<redraw> method to resolv the bug.
 
  ...
  $fenetre->Button(-text => "Change xlabel", -command => sub { 
@@ -2420,8 +2544,9 @@ resolv the bug.
 
 If you call this method, you enable help identification.
 When the mouse cursor passes over a plotted line or its entry in the legend, 
-the line and its entry will be turn into a color (that you can change) to help the identification. 
-B<set_legend> method must be set if you want to enabled identification.
+the line and its entry will be turn into a color (that you can change) 
+to help the identification. B<set_legend> method must be set if you want to 
+enabled identification.
 
 =back
 
@@ -2442,8 +2567,8 @@ Default : B<snow>
 -colordatamouse => I<Array reference>
 
 Specify an array reference wich contains 2 colors. The first color specifies 
-the color of the line when mouse cursor passes over a entry in the legend. If the line 
-has the same color, the second color will be used.
+the color of the line when mouse cursor passes over a entry in the legend. 
+If the line has the same color, the second color will be used.
 
  -colordatamouse => ["blue", "green"],
 
@@ -2468,7 +2593,8 @@ Default : B<1>
 
 =item I<$GraphDummies>->B<set_legend>(I<? %Options>)
 
-View a legend for the chart and allow to enabled identification help by using B<set_balloon> method.
+View a legend for the chart and allow to enabled identification help by using 
+B<set_balloon> method.
 
 =back
 
@@ -2558,8 +2684,8 @@ Default : B<30>
 
 =head2 zoom
 
-zoom the chart. The x axis and y axis will be zoomed. If your graph has a 300*300 
-size, after a zoom(200), the chart will have a 600*600 size.
+zoom the chart. The x axis and y axis will be zoomed. If your graph has 
+a 300*300 size, after a zoom(200), the chart will have a 600*600 size.
 
 $GraphDummies->zoom(I<$zoom>);
 
@@ -2646,7 +2772,3 @@ This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
 =cut
-
-
-
-

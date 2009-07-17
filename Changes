@@ -1,5 +1,13 @@
 Revision history for Tk-ForDummies-Graph
 
+1.10 18/07/2009 00:22:43
+  Tk::ForDummies::Graph::Boxplots 
+  The same algorithm as Excel and type 7 R package is used for the quantile Q1 et Q3 calculation. 
+  new boxplot_information method added.
+   
+  Warning fixed in all add_data method (Tk::ForDummies::Graph::*) when legend not defined.
+  CPAN documentation updated.
+
 1.09 16/07/2009 20:26:56
   The calcul of quantile (Q1, Q3) was wrong for impair numbers of data values
   in Tk::ForDummies::Graph::Boxplots. The bug is fix now and the calcul 

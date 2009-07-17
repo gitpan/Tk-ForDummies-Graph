@@ -13,8 +13,8 @@ my $GraphDummies = $mw->Lines(
   -xlabel     => 'X Label',
   -ylabel     => 'Y Label',
   -background => 'snow',
-  -spline => 1,
-  -bezier => 1,
+  -spline     => 1,
+  -bezier     => 1,
   -linewidth  => 2,
 )->pack(qw / -fill both -expand 1 /);
 
