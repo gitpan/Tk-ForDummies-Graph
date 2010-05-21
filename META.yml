@@ -1,39 +1,44 @@
 ---
-name: Tk-ForDummies-Graph
-version: 1.10
+abstract: 'Extension of Canvas widget to create a graph like GDGraph.'
 author:
   - 'Djibril Ousmanou <djibel@cpan.org>'
-abstract: Extension of Canvas widget to create a graph like GDGraph.
-license: perl
-resources:
-  license: http://dev.perl.org/licenses/
 build_requires:
   POSIX: 0
   Test::More: 0
   Tk: 800
-provides:
-  Tk::ForDummies::Graph:
-    file: lib/Tk/ForDummies/Graph.pm
-    version: 1.10
-  Tk::ForDummies::Graph::Areas:
-    file: lib/Tk/ForDummies/Graph/Areas.pm
-    version: 1.06
-  Tk::ForDummies::Graph::Bars:
-    file: lib/Tk/ForDummies/Graph/Bars.pm
-    version: 1.07
-  Tk::ForDummies::Graph::Boxplots:
-    file: lib/Tk/ForDummies/Graph/Boxplots.pm
-    version: 1.04
-  Tk::ForDummies::Graph::Lines:
-    file: lib/Tk/ForDummies/Graph/Lines.pm
-    version: 1.08
-  Tk::ForDummies::Graph::Pie:
-    file: lib/Tk/ForDummies/Graph/Pie.pm
-    version: 1.05
-  Tk::ForDummies::Graph::Utils:
-    file: lib/Tk/ForDummies/Graph/Utils.pm
-    version: 1.04
-generated_by: Module::Build version 0.33
+configure_requires:
+  Module::Build: 0.36
+generated_by: 'Module::Build version 0.3607'
+license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
+name: Tk-ForDummies-Graph
+provides:
+  Tk::ForDummies::Graph:
+    file: lib/Tk/ForDummies/Graph.pm
+    version: 1.11
+  Tk::ForDummies::Graph::Areas:
+    file: lib/Tk/ForDummies/Graph/Areas.pm
+    version: 1.07
+  Tk::ForDummies::Graph::Bars:
+    file: lib/Tk/ForDummies/Graph/Bars.pm
+    version: 1.08
+  Tk::ForDummies::Graph::Boxplots:
+    file: lib/Tk/ForDummies/Graph/Boxplots.pm
+    version: 1.05
+  Tk::ForDummies::Graph::Lines:
+    file: lib/Tk/ForDummies/Graph/Lines.pm
+    version: 1.09
+  Tk::ForDummies::Graph::Mixed:
+    file: lib/Tk/ForDummies/Graph/Mixed.pm
+    version: 1.00
+  Tk::ForDummies::Graph::Pie:
+    file: lib/Tk/ForDummies/Graph/Pie.pm
+    version: 1.06
+  Tk::ForDummies::Graph::Utils:
+    file: lib/Tk/ForDummies/Graph/Utils.pm
+    version: 1.05
+resources:
+  license: http://dev.perl.org/licenses/
+version: 1.11

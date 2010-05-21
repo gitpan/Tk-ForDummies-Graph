@@ -2,26 +2,28 @@
 use strict;
 use warnings;
 use Tk;
-use Tk::ForDummies::Graph::Bars;
+use Tk::ForDummies::Graph::Lines;
 
 my $mw = new MainWindow(
-  -title      => 'Tk::ForDummies::Graph::Bars - no spacingbar',
+  -title      => 'Tk::ForDummies::Graph::Lines - Spline',
   -background => 'white',
 );
-my $GraphDummies = $mw->Bars(
-  -title      => 'Tk::ForDummies::Graph::Bars - no spacingbar',
+my $GraphDummies = $mw->Lines(
+  -title      => 'bezier curve examples',
   -xlabel     => 'X Label',
   -ylabel     => 'Y Label',
   -background => 'snow',
-  -spacingbar => 0,
-  -showvalues => 1,
+  -spline     => 0,
+  -bezier     => 1,
+  -linewidth  => 2,
 )->pack(qw / -fill both -expand 1 /);
 
 my @data = (
-  [ '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th' ],
-  [ 1,     2,     5,     6,     3,     1.5,   1,     3,     4 ],
-  [ 4,     2,     5,     2,     3,     5.5,   7,     9,     4 ],
-  [ 1,     2,     52,    6,     3,     17.5,  1,     43,    10 ]
+  [ '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th' ],
+  [ 10,    30,    20,    30,    5,     41,    1,     23 ],
+  [ 10,    5,     10,    0,     17,    2,     40,    23 ],
+  [ 20,    10,    12,    20,    30,    10,    35,    12 ],
+
 );
 
 # Add a legend to the graph

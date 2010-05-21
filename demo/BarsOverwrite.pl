@@ -10,7 +10,7 @@ my $mw = new MainWindow(
 );
 
 my $GraphDummies = $mw->Bars(
-  -title      => 'My chart title - overwrite',
+  -title      => 'Tk::ForDummies::Graph::Bars - overwrite',
   -xlabel     => 'X Label',
   -ylabel     => 'Y Label',
   -overwrite  => 1,
@@ -25,18 +25,18 @@ my @data = (
   [ 1,     2,     4,     6,     3,     17.5,  1,     20,    10 ]
 );
 
-# Add a legend to the chart
+# Add a legend to the graph
 my @Legends = ( 'legend 1', 'legend 2', );
 $GraphDummies->set_legend(
-  -title       => "Title legend",
+  -title       => 'Title legend',
   -data        => \@Legends,
-  -titlecolors => "blue",
+  -titlecolors => 'blue',
 );
 
 # Add help identification
 $GraphDummies->set_balloon();
 
-# Create the chart
+# Create the graph
 $GraphDummies->plot( \@data );
 
 MainLoop();

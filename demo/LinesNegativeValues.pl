@@ -5,13 +5,13 @@ use Tk;
 use Tk::ForDummies::Graph::Lines;
 
 my $mw = new MainWindow(
-  -title      => 'Tk::ForDummies::Graph::Lines example - negative values',
+  -title      => 'Tk::ForDummies::Graph::Lines',
   -background => 'white',
 );
 
 my $GraphDummies = $mw->Lines(
   -background   => 'snow',
-  -title        => 'My chart title',
+  -title        => 'Tk::ForDummies::Graph::Lines example - negative values',
   -xlabel       => 'X Label',
   -ylabel       => 'Y Label',
   -zeroaxisonly => 1,
@@ -23,6 +23,6 @@ my @data = (
   [ -1,    -2,    -4,    -6,    -3,    -17.5, -1,    -20,   -10 ]
 );
 
-# Create the chart
+# Create the graph
 $GraphDummies->plot( \@data );
 MainLoop();

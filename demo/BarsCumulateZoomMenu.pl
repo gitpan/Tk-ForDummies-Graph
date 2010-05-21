@@ -10,7 +10,7 @@ my $mw = new MainWindow(
 );
 
 my $GraphDummies = $mw->Bars(
-  -title        => 'My chart title',
+  -title        => 'Tk::ForDummies::Graph::Bars - cumulate + zoom menu',
   -xlabel       => 'X Label',
   -background   => 'snow',
   -ylabel       => 'Y Label',
@@ -27,21 +27,21 @@ my @data = (
   [ 1,     2,     4,     6,     3,     17.5,  1,     20,    10 ]
 );
 
-# Add a legend to our chart
+# Add a legend to our graph
 my @Legends = ( 'legend 1', 'legend 2', 'legend 3' );
 $GraphDummies->set_legend(
-  -title       => "Title legend",
+  -title       => 'Title legend',
   -data        => \@Legends,
-  -titlecolors => "blue",
+  -titlecolors => 'blue',
 );
 
 # Add help identification
 $GraphDummies->set_balloon();
 
-# Create the chart
+# Create the graph
 $GraphDummies->plot( \@data );
 
-$GraphDummies->add_data( [ 1 .. 9 ], "leg4" );
+$GraphDummies->add_data( [ 1 .. 9 ], 'legend 4' );
 
 my $menu = Menu( $GraphDummies, [qw/30 50 80 100 150 200/] );
 
@@ -59,13 +59,13 @@ sub Menu {
   my %MenuConfig = (
     -tearoff    => 0,
     -takefocus  => 1,
-    -background => "white",
+    -background => 'white',
     -menuitems  => [],
   );
   my $Menu = $GraphDummies->Menu(%MenuConfig);
-  $Menu->add( "cascade", -label => 'Zoom' );
-  $Menu->add( "cascade", -label => 'Zoom X-axis' );
-  $Menu->add( "cascade", -label => 'Zoom Y-axis' );
+  $Menu->add( 'cascade', -label => 'Zoom' );
+  $Menu->add( 'cascade', -label => 'Zoom X-axis' );
+  $Menu->add( 'cascade', -label => 'Zoom Y-axis' );
 
   my $SsMenuZoomX = $Menu->Menu(%MenuConfig);
   my $SsMenuZoomY = $Menu->Menu(%MenuConfig);
@@ -73,17 +73,17 @@ sub Menu {
 
   for my $Zoom ( @{$RefData} ) {
     $SsMenuZoom->add(
-      "command",
+      'command',
       -label   => "$Zoom \%",
       -command => sub { $GraphDummies->zoom($Zoom); }
     );
     $SsMenuZoomX->add(
-      "command",
+      'command',
       -label   => "$Zoom \%",
       -command => sub { $GraphDummies->zoomx($Zoom); }
     );
     $SsMenuZoomY->add(
-      "command",
+      'command',
       -label   => "$Zoom \%",
       -command => sub { $GraphDummies->zoomy($Zoom); }
     );
@@ -94,8 +94,7 @@ sub Menu {
   $Menu->entryconfigure( 'Zoom Y-axis', -menu => $SsMenuZoomY );
   $Menu->entryconfigure( 'Zoom',        -menu => $SsMenuZoom );
 
-  $GraphDummies->Tk::bind( '<ButtonPress-3>',
-    [ \&CanvasMenu, Ev("X"), Ev("Y"), $Menu, $GraphDummies ] );
+  $GraphDummies->Tk::bind( '<ButtonPress-3>', [ \&CanvasMenu, Ev('X'), Ev('Y'), $Menu, $GraphDummies ] );
 
   return $Menu;
 }

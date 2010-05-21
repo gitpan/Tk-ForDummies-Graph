@@ -2,8 +2,8 @@ package Tk::ForDummies::Graph::Utils;
 
 #==================================================================
 # Author    : Djibril Ousmanou
-# Copyright : 2009
-# Update    : 17/07/2009 20:11:36
+# Copyright : 2010
+# Update    : 21/05/2010 23:11:29
 # AIM       : Private functions and public shared methods
 #             between Tk::ForDummies::Graph modules
 #==================================================================
@@ -12,7 +12,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = '1.04';
+$VERSION = '1.05';
 
 use Exporter;
 use POSIX qw / floor /;
@@ -21,11 +21,25 @@ my @ModuleToExport = qw (
   _MaxArray   _MinArray   _isANumber _roundValue
   zoom        zoomx      zoomy       clearchart
   _Quantile   _moy       _NonOutlier _GetControlPoints
+  enabled_automatic_redraw           disabled_automatic_redraw
+  _delete_array_doublon redraw       add_data     
+  delete_balloon                     set_balloon
+);
+my @ModulesDisplay = qw/ display_values /;
+our @ISA         = qw(Exporter);
+our @EXPORT      = @ModuleToExport;
+our @EXPORT_OK   = @ModulesDisplay;
+our %EXPORT_TAGS = (
+  DUMMIES => \@ModuleToExport,
+  DISPLAY => \@ModulesDisplay,
 );
 
-our @ISA         = qw(Exporter);
-our @EXPORT_OK   = @ModuleToExport;
-our %EXPORT_TAGS = ( DUMMIES => \@ModuleToExport );
+sub _delete_array_doublon {
+  my ($ref_tab) = @_;
+
+  my %temp;
+  return grep { !$temp{$_}++ } @{$ref_tab};
+}
 
 sub _MaxArray {
   my ($RefNumber) = @_;
@@ -155,8 +169,7 @@ sub _Quantile {
   my $aKPlus_quantile = $Values[$K_quantile];
 
   # Calcul quantile
-  my $quantile
-    = $aK_quantile + ( $F_quantile * ( $aKPlus_quantile - $aK_quantile ) );
+  my $quantile = $aK_quantile + ( $F_quantile * ( $aKPlus_quantile - $aK_quantile ) );
 
   return $quantile;
 }
@@ -249,8 +262,7 @@ sub _GetControlPoints {
     # xc1 = ( (xb - xa ) / 2 ) + xa
     # yc1 = via D2
     my @ControlPoint1;
-    $ControlPoint1[0]
-      = ( $distance * ( $PointB[0] - $PointA[0] ) ) + $PointA[0];
+    $ControlPoint1[0] = ( $distance * ( $PointB[0] - $PointA[0] ) ) + $PointA[0];
     $ControlPoint1[1] = $D2line->( $ControlPoint1[0] );
     push( @AllControlPoints, ( $ControlPoint1[0], $ControlPoint1[1] ) );
 
@@ -260,18 +272,78 @@ sub _GetControlPoints {
     # xc2 = ( (xc - xb ) / 2 ) + xb
     # yc2 = via D2
     my @ControlPoint2;
-    $ControlPoint2[0]
-      = ( ( 1 - $distance ) * ( $PointC[0] - $PointB[0] ) ) + $PointB[0];
+    $ControlPoint2[0] = ( ( 1 - $distance ) * ( $PointC[0] - $PointB[0] ) ) + $PointB[0];
     $ControlPoint2[1] = $D2line->( $ControlPoint2[0] );
 
     push( @AllControlPoints, ( $ControlPoint2[0], $ControlPoint2[1] ) );
   }
 
-  push( @AllControlPoints,
-    $RefArray->[ $NbrElt - 2 ],
-    $RefArray->[ $NbrElt - 1 ] );
+  push( @AllControlPoints, $RefArray->[ $NbrElt - 2 ], $RefArray->[ $NbrElt - 1 ] );
 
   return \@AllControlPoints;
+}
+
+sub redraw {
+  my ($CompositeWidget) = @_;
+
+  $CompositeWidget->_GraphForDummiesConstruction;
+  return;
+}
+
+sub delete_balloon {
+  my ($CompositeWidget) = @_;
+
+  $CompositeWidget->{RefInfoDummies}->{Balloon}{State} = 0;
+  $CompositeWidget->_Balloon();
+
+  return;
+}
+
+sub add_data {
+  my ( $CompositeWidget, $Refdata, $legend ) = @_;
+
+  # Doesn't work for Pie graph
+  if ( $CompositeWidget->class eq 'Pie' ) {
+    $CompositeWidget->_error("This method 'add_data' not allowed for Tk::ForDummies::Graph::Pie\n");
+    return;
+  }
+
+  push( @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} }, $Refdata );
+  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} > 0 ) {
+    push @{ $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} }, $legend;
+  }
+
+  $CompositeWidget->plot( $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} );
+
+  return;
+}
+
+sub set_balloon {
+  my ( $CompositeWidget, %options ) = @_;
+
+  $CompositeWidget->{RefInfoDummies}->{Balloon}{State} = 1;
+
+  if ( defined $options{-colordatamouse} ) {
+    if ( scalar @{ $options{-colordatamouse} } < 2 ) {
+      $CompositeWidget->_error(
+        "Can't set -colordatamouse, you have to set 2 colors\n" . "Ex : -colordatamouse => ['red','green'],",
+        1
+      );
+    }
+    else {
+      $CompositeWidget->{RefInfoDummies}->{Balloon}{ColorData} = $options{-colordatamouse};
+    }
+  }
+  if ( defined $options{-morepixelselected} ) {
+    $CompositeWidget->{RefInfoDummies}->{Balloon}{MorePixelSelected} = $options{-morepixelselected};
+  }
+  if ( defined $options{-background} ) {
+    $CompositeWidget->{RefInfoDummies}->{Balloon}{Background} = $options{-background};
+  }
+
+  $CompositeWidget->_Balloon();
+
+  return;
 }
 
 sub zoom {
@@ -279,7 +351,7 @@ sub zoom {
 
   my ( $NewWidth, $NewHeight ) = $CompositeWidget->_ZoomCalcul( $Zoom, $Zoom );
   $CompositeWidget->configure( -width => $NewWidth, -height => $NewHeight );
-  $CompositeWidget->toplevel->geometry("");
+  $CompositeWidget->toplevel->geometry('');
 
   return 1;
 }
@@ -289,7 +361,7 @@ sub zoomx {
 
   my ( $NewWidth, $NewHeight ) = $CompositeWidget->_ZoomCalcul( $Zoom, undef );
   $CompositeWidget->configure( -width => $NewWidth );
-  $CompositeWidget->toplevel->geometry("");
+  $CompositeWidget->toplevel->geometry('');
 
   return 1;
 }
@@ -299,7 +371,7 @@ sub zoomy {
 
   my ( $NewWidth, $NewHeight ) = $CompositeWidget->_ZoomCalcul( undef, $Zoom );
   $CompositeWidget->configure( -height => $NewHeight );
-  $CompositeWidget->toplevel->geometry("");
+  $CompositeWidget->toplevel->geometry('');
 
   return 1;
 }
@@ -314,13 +386,62 @@ sub clearchart {
   return;
 }
 
+sub display_values {
+  my ( $CompositeWidget, $ref_data, %options ) = @_;
+
+  # Doesn't work for Pie graph
+  if ( $CompositeWidget->class eq 'Pie' ) {
+    $CompositeWidget->_error("This method 'display_values' not allowed for Tk::ForDummies::Graph::Pie\n");
+    return;
+  }
+  elsif ( $CompositeWidget->class eq 'Bars' ) {
+    $CompositeWidget->_error("This method 'display_values' not allowed for Tk::ForDummies::Graph::Bars\n");
+    return;
+  }
+
+  unless ( defined $ref_data and ref($ref_data) eq 'ARRAY' ) {
+    $CompositeWidget->_error( 'data not defined', 1 );
+    return;
+  }
+  $CompositeWidget->{RefInfoDummies}->{Data}{RefDataToDisplay}       = $ref_data;
+  $CompositeWidget->{RefInfoDummies}->{Data}{RefOptionDataToDisplay} = \%options;
+
+  if ( $CompositeWidget->class eq 'Areas' ) {
+    foreach my $ref_value ( @{$ref_data} ) {
+      unshift @{$ref_value}, undef;
+    }
+  }
+
+  if ( defined $CompositeWidget->{RefInfoDummies}->{Data}{PlotDefined} ) {
+    $CompositeWidget->redraw;
+  }
+
+  return;
+}
+
+sub enabled_automatic_redraw {
+  my ($CompositeWidget) = @_;
+
+  # recreate graph after widget resize
+  $CompositeWidget->Tk::bind( '<Configure>' => sub { $CompositeWidget->_GraphForDummiesConstruction; } );
+  return;
+}
+
+sub disabled_automatic_redraw {
+  my ($CompositeWidget) = @_;
+
+  # recreate graph after widget resize
+  $CompositeWidget->Tk::bind( '<Configure>' => undef );
+  return;
+}
+
 1;
 
 __END__
 
 =head1 NAME
 
-Tk::ForDummies::Graph::Utils - Internal utilities used by Tk::ForDummies::Graph modules
+Tk::ForDummies::Graph::Utils - private Tk::ForDummies::Graph methods
 
 =head1 SYNOPSIS
 
@@ -328,7 +449,7 @@ none
 
 =head1 DESCRIPTION
 
-no public subroutines
+none
 
 =head1 AUTHOR
 
@@ -337,7 +458,7 @@ Djibril Ousmanou, C<< <djibel at cpan.org> >>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Djibril Ousmanou, all rights reserved.
+Copyright 2010 Djibril Ousmanou, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

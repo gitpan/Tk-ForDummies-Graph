@@ -5,7 +5,7 @@ use Tk;
 use Tk::ForDummies::Graph::Lines;
 
 my $mw = new MainWindow(
-  -title      => 'bezier curve example',
+  -title      => 'Tk::ForDummies::Graph::Lines - Spline',
   -background => 'white',
 );
 my $GraphDummies = $mw->Lines(
@@ -26,18 +26,18 @@ my @data = (
 
 );
 
-# Add a legend to the chart
+# Add a legend to the graph
 my @Legends = ( 'legend 1', 'legend 2', 'legend 3' );
 $GraphDummies->set_legend(
-  -title       => "Title legend",
+  -title       => 'Title legend',
   -data        => \@Legends,
-  -titlecolors => "blue",
+  -titlecolors => 'blue',
 );
 
 # Add help identification
 $GraphDummies->set_balloon();
 
-# Create the chart
+# Create the graph
 $GraphDummies->plot( \@data );
 
 MainLoop();

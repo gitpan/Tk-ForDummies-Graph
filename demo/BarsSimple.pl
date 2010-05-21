@@ -5,11 +5,11 @@ use Tk;
 use Tk::ForDummies::Graph::Bars;
 
 my $mw = new MainWindow(
-  -title      => 'Tk::ForDummies::Graph::Bars example',
+  -title      => 'Tk::ForDummies::Graph::Bars',
   -background => 'white',
 );
 my $GraphDummies = $mw->Bars(
-  -title      => 'My chart title',
+  -title      => 'Tk::ForDummies::Graph::Bars',
   -xlabel     => 'X Label',
   -ylabel     => 'Y Label',
   -background => 'snow',
@@ -22,18 +22,18 @@ my @data = (
   [ 1,     2,     12,    6,     3,     5,     1,     23,    5 ]
 );
 
-# Add a legend to the chart
+# Add a legend to the graph
 my @Legends = ( 'legend 1', 'legend 2', 'legend 3' );
 $GraphDummies->set_legend(
-  -title       => "Title legend",
+  -title       => 'Title legend',
   -data        => \@Legends,
-  -titlecolors => "blue",
+  -titlecolors => 'blue',
 );
 
 # Add help identification
 $GraphDummies->set_balloon();
 
-# Create the chart
+# Create the graph
 $GraphDummies->plot( \@data );
 
 MainLoop();

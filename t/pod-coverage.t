@@ -16,8 +16,7 @@ plan skip_all => "Pod::Coverage $min_pc required for testing POD coverage"
     if $@;
 
 all_pod_coverage_ok(         
-  { also_private => [ qr/^(?:_|Populate|zoom\w?|clearchart)/i ], },
+  { also_private => [ qr/^(?:_|Populate|zoom\w?|clearchart|display_values|enabled_automatic_redraw|disabled_automatic_redraw|redraw|add_data|delete_balloon|set_balloon|display_order)/i ], },
   "ignore this message\n",
 );
 
- 

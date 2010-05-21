@@ -49,11 +49,11 @@ TODO: {
   );
 
   module_boilerplate_ok('lib/Tk/ForDummies/Graph.pm');
+  module_boilerplate_ok('lib/Tk/ForDummies/Graph/Areas.pm');
   module_boilerplate_ok('lib/Tk/ForDummies/Graph/Bars.pm');
+  module_boilerplate_ok('lib/Tk/ForDummies/Graph/Boxplots.pm');
   module_boilerplate_ok('lib/Tk/ForDummies/Graph/Lines.pm');
   module_boilerplate_ok('lib/Tk/ForDummies/Graph/Pie.pm');
-  module_boilerplate_ok('lib/Tk/ForDummies/Graph/Areas.pm');
-  module_boilerplate_ok('lib/Tk/ForDummies/Graph/Boxplots.pm');
   module_boilerplate_ok('lib/Tk/ForDummies/Graph/Utils.pm');
 
 

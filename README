@@ -42,6 +42,7 @@ perldoc command.
     perldoc Tk::ForDummies::Graph::Pie
     perldoc Tk::ForDummies::Graph::Points
     perldoc Tk::ForDummies::Graph::Boxplots
+    perldoc Tk::ForDummies::Graph::Miwed
     perldoc Tk::ForDummies::Graph::FAQ
 
 
@@ -62,7 +63,7 @@ You can also look for information at:
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2009 Djibril Ousmanou
+Copyright (C) 2010 Djibril Ousmanou
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

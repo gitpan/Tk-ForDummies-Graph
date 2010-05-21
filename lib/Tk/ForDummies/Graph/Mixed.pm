@@ -1,4 +1,4 @@
-package Tk::ForDummies::Graph::Lines;
+package Tk::ForDummies::Graph::Mixed;
 
 use warnings;
 use strict;
@@ -7,20 +7,20 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 17/05/2010 15:26:57
-# AIM       : Create line graph
+# Update    : 21/05/2010 23:05:31
+# AIM       : Create Mixed graph
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.09';
+$VERSION = '1.00';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
 
-use Tk::ForDummies::Graph::Utils qw / :DUMMIES :DISPLAY /;
+use Tk::ForDummies::Graph::Utils qw ( :DUMMIES :DISPLAY );
 use Tk::ForDummies::Graph qw (:DUMMIES);
 
-Construct Tk::Widget 'Lines';
+Construct Tk::Widget 'Mixed';
 
 sub Populate {
 
@@ -33,7 +33,6 @@ sub Populate {
 
   $CompositeWidget->Advertise( 'canvas' => $CompositeWidget );
 
-  # ConfigSpecs
   $CompositeWidget->ConfigSpecs(
     -title      => [ 'PASSIVE', 'Title',      'Title',      undef ],
     -titlecolor => [ 'PASSIVE', 'Titlecolor', 'TitleColor', 'black' ],
@@ -109,17 +108,23 @@ sub Populate {
     -linewidth => [ 'PASSIVE', 'Linewidth', 'LineWidth', 1 ],
     -colordata =>
       [ 'PASSIVE', 'Colordata', 'ColorData', $CompositeWidget->{RefInfoDummies}->{Legend}{Colors} ],
+    -overwrite  => [ 'PASSIVE', 'Overwrite',  'OverWrite',  0 ],
+    -cumulate   => [ 'PASSIVE', 'Cumulate',   'Cumulate',   0 ],
+    -spacingbar => [ 'PASSIVE', 'Spacingbar', 'SpacingBar', 1 ],
+    -showvalues => [ 'PASSIVE', 'Showvalues', 'ShowValues', 0 ],
 
     # splined
     -bezier => [ 'PASSIVE', 'Bezier', 'Bezier', 0 ],
     -spline => [ 'PASSIVE', 'Spline', 'Spline', 0 ],
-    -dash   => [ 'PASSIVE', 'Dash',   'Dash',   undef ],
 
     # points
     -pointline  => [ 'PASSIVE', 'Pointline',  'PointLine',  0 ],
     -markersize => [ 'PASSIVE', 'Markersize', 'MarkerSize', 8 ],
     -markers => [ 'PASSIVE', 'Markers', 'Markers', [ 1 .. 8 ] ],
 
+    # type mixed
+    -typemixed   => [ 'PASSIVE', 'Typemixed',   'TypeMixed',   undef ],
+    -defaulttype => [ 'PASSIVE', 'Defaulttype', 'DefaulTtype', 'lines' ],
   );
 
   $CompositeWidget->Delegates( DEFAULT => $CompositeWidget, );
@@ -165,15 +170,15 @@ sub _Balloon {
   );
 
   # no legend, no bind
-  unless ( my $LegendTextNumber = $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} ) {
+  unless ( my $LegendTextNumber = $CompositeWidget->{RefInfoDummies}->{Legend}{LegendTextNumber} ) {
     return;
   }
 
-  # bind legend and lines
-  for my $IndexLegend ( 1 .. $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} ) {
+  # bind legend and Mixed
+  for my $IndexLegend ( 1 .. $CompositeWidget->{RefInfoDummies}->{Legend}{LegendTextNumber} ) {
 
     my $LegendTag = $IndexLegend . $CompositeWidget->{RefInfoDummies}->{TAGS}{Legend};
-    my $LineTag   = $IndexLegend . $CompositeWidget->{RefInfoDummies}->{TAGS}{Line};
+    my $MixedTag  = $IndexLegend . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
 
     $CompositeWidget->bind(
       $LegendTag,
@@ -181,26 +186,11 @@ sub _Balloon {
       sub {
         my $OtherColor = $CompositeWidget->{RefInfoDummies}->{Balloon}{ColorData}->[0];
 
-        # Change color if line have the same color
-        if ( $OtherColor eq $CompositeWidget->{RefInfoDummies}{Line}{$LineTag}{color} ) {
+        # Change color if bar have the same color
+        if ( $OtherColor eq $CompositeWidget->{RefInfoDummies}{Mixed}{$MixedTag}{color} ) {
           $OtherColor = $CompositeWidget->{RefInfoDummies}->{Balloon}{ColorData}->[1];
         }
-
-        # if -fill enabled
-        if ( $CompositeWidget->itemcget( $LineTag, -fill ) ) {
-          $CompositeWidget->itemconfigure( $LineTag, -fill => $OtherColor, );
-        }
-        $CompositeWidget->itemconfigure( $LineTag,
-          -width => $CompositeWidget->cget( -linewidth )
-            + $CompositeWidget->{RefInfoDummies}->{Balloon}{MorePixelSelected}, );
-
-        # if -outline enabled
-        eval {
-          if ( $CompositeWidget->itemcget( $LineTag, -outline ) )
-          {
-            $CompositeWidget->itemconfigure( $LineTag, -outline => $OtherColor, );
-          }
-        };
+        $CompositeWidget->itemconfigure( $MixedTag, -fill => $OtherColor, );
       }
     );
 
@@ -208,19 +198,12 @@ sub _Balloon {
       $LegendTag,
       '<Leave>',
       sub {
-        if ( $CompositeWidget->itemcget( $LineTag, -fill ) ) {
-          $CompositeWidget->itemconfigure( $LineTag,
-            -fill => $CompositeWidget->{RefInfoDummies}{Line}{$LineTag}{color}, );
-        }
-        $CompositeWidget->itemconfigure( $LineTag, -width => $CompositeWidget->cget( -linewidth ), );
+        $CompositeWidget->itemconfigure( $MixedTag,
+          -fill => $CompositeWidget->{RefInfoDummies}{Mixed}{$MixedTag}{color}, );
 
-        eval {
-          if ( $CompositeWidget->itemcget( $LineTag, -outline ) )
-          {
-            $CompositeWidget->itemconfigure( $LineTag,
-              -outline => $CompositeWidget->{RefInfoDummies}{Line}{$LineTag}{color}, );
-          }
-        };
+        # Allow value bar to display
+        $CompositeWidget->itemconfigure( $CompositeWidget->{RefInfoDummies}->{TAGS}{BarValues},
+          -fill => 'black', );
       }
     );
   }
@@ -236,7 +219,7 @@ sub set_legend {
     $CompositeWidget->_error(
       "Can't set -data in set_legend method. "
         . "May be you forgot to set the value\n"
-        . "Ex : set_legend( -data => ['legend1', 'legend2', ...] );",
+        . "Eg : set_legend( -data => ['legend1', 'legend2', ...] );",
       1
     );
   }
@@ -244,48 +227,73 @@ sub set_legend {
   unless ( defined $RefLegend and ref($RefLegend) eq 'ARRAY' ) {
     $CompositeWidget->_error(
       "Can't set -data in set_legend method. Bad data\n"
-        . "Ex : set_legend( -data => ['legend1', 'legend2', ...] );",
+        . "Eg : set_legend( -data => ['legend1', 'legend2', ...] );",
       1
     );
   }
 
+  my @LegendOption = qw / -box -legendmarkerheight -legendmarkerwidth -heighttitle /;
+
+  foreach my $OptionName (@LegendOption) {
+    if ( defined $InfoLegend{$OptionName}
+      and $InfoLegend{$OptionName} !~ m{^\d+$} )
+    {
+      $CompositeWidget->_error(
+        "'Can't set $OptionName to " . "'$InfoLegend{$OptionName}', $InfoLegend{$OptionName}' isn't numeric",
+        1
+      );
+    }
+  }
+
+  # Check legend and data size
+  if ( my $RefData = $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} ) {
+    unless ( $CompositeWidget->_CheckSizeLengendAndData( $RefData, $RefLegend ) ) {
+      undef $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend};
+      return;
+    }
+  }
+
+  # Get Legend options
+  # Title
   if ( defined $InfoLegend{-title} ) {
     $CompositeWidget->{RefInfoDummies}->{Legend}{title} = $InfoLegend{-title};
   }
   else {
     undef $CompositeWidget->{RefInfoDummies}->{Legend}{title};
-    $CompositeWidget->{RefInfoDummies}->{Legend}{HeightTitle} = 5;
+    $CompositeWidget->{RefInfoDummies}->{Legend}{HeightTitle} = 0;
   }
-  $CompositeWidget->{RefInfoDummies}->{Legend}{titlefont} = $InfoLegend{-titlefont}
-    || $CompositeWidget->{RefInfoDummies}->{Font}{DefaultLegendTitle};
-  $CompositeWidget->{RefInfoDummies}->{Legend}{legendfont} = $InfoLegend{-legendfont}
-    || $CompositeWidget->{RefInfoDummies}->{Font}{DefaultLegendTitle};
 
-  if ( defined $InfoLegend{-box} and $InfoLegend{-box} =~ m{^\d+$} ) {
+  # Title and legend font
+  if ( defined $InfoLegend{-titlefont} ) {
+    $CompositeWidget->{RefInfoDummies}->{Legend}{titlefont} = $InfoLegend{-titlefont};
+  }
+  if ( defined $InfoLegend{-legendfont} ) {
+    $CompositeWidget->{RefInfoDummies}->{Legend}{legendfont} = $InfoLegend{-legendfont};
+  }
+
+  # box legend
+  if ( defined $InfoLegend{-box} ) {
     $CompositeWidget->{RefInfoDummies}->{Legend}{box} = $InfoLegend{-box};
   }
+
+  # title color
   if ( defined $InfoLegend{-titlecolors} ) {
     $CompositeWidget->{RefInfoDummies}->{Legend}{titlecolors} = $InfoLegend{-titlecolors};
   }
-  if ( defined $InfoLegend{-legendmarkerheight}
-    and $InfoLegend{-legendmarkerheight} =~ m{^\d+$} )
-  {
+
+  # legendmarkerheight
+  if ( defined $InfoLegend{-legendmarkerheight} ) {
     $CompositeWidget->{RefInfoDummies}->{Legend}{HCube} = $InfoLegend{-legendmarkerheight};
   }
-  if ( defined $InfoLegend{-legendmarkerwidth}
-    and $InfoLegend{-legendmarkerwidth} =~ m{^\d+$} )
-  {
+
+  # legendmarkerwidth
+  if ( defined $InfoLegend{-legendmarkerwidth} ) {
     $CompositeWidget->{RefInfoDummies}->{Legend}{WCube} = $InfoLegend{-legendmarkerwidth};
   }
-  if ( defined $InfoLegend{-heighttitle}
-    and $InfoLegend{-heighttitle} =~ m{^\d+$} )
-  {
-    $CompositeWidget->{RefInfoDummies}->{Legend}{HeightTitle} = $InfoLegend{-heighttitle};
-  }
 
-  # Check legend and data size
-  if ( my $RefData = $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} ) {
-    $CompositeWidget->_CheckSizeLengendAndData( $RefData, $RefLegend );
+  # heighttitle
+  if ( defined $InfoLegend{-heighttitle} ) {
+    $CompositeWidget->{RefInfoDummies}->{Legend}{HeightTitle} = $InfoLegend{-heighttitle};
   }
 
   # Get the biggest length of legend text
@@ -333,12 +341,12 @@ sub _Legend {
     if ( $CompositeWidget->{RefInfoDummies}->{Legend}{NbrPerLine} == 0 );
 
   # How many legend we will have
-  $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend}
+  $CompositeWidget->{RefInfoDummies}->{Legend}{LegendTextNumber}
     = scalar @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} } - 1;
 
 =for NumberLines:
   We calculate the number of lines set for the legend graph.
-  It can set 11 legends per line, then for 3 legend, we will need one line
+  If wa can set 11 legends per line, then for 3 legend, we will need one line
   and for 12 legends, we will need 2 lines
   If NbrLeg / NbrPerLine = integer => get number of lines
   If NbrLeg / NbrPerLine = float => int(float) + 1 = get number of lines
@@ -346,7 +354,7 @@ sub _Legend {
 =cut
 
   $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLine}
-    = $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend}
+    = $CompositeWidget->{RefInfoDummies}->{Legend}{LegendTextNumber}
     / $CompositeWidget->{RefInfoDummies}->{Legend}{NbrPerLine};
   unless (
     int( $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLine} )
@@ -363,11 +371,11 @@ sub _Legend {
     * $CompositeWidget->{RefInfoDummies}->{Legend}{HLine};
 
   # Get number legend text max per line to reajust our graph
-  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend}
+  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{LegendTextNumber}
     < $CompositeWidget->{RefInfoDummies}->{Legend}{NbrPerLine} )
   {
     $CompositeWidget->{RefInfoDummies}->{Legend}{NbrPerLine}
-      = $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend};
+      = $CompositeWidget->{RefInfoDummies}->{Legend}{LegendTextNumber};
   }
 
   return;
@@ -383,6 +391,7 @@ sub _ViewLegend {
   my $titlecolor         = $CompositeWidget->{RefInfoDummies}->{Legend}{titlecolors};
   my $titlefont          = $CompositeWidget->{RefInfoDummies}->{Legend}{titlefont};
 
+  # display legend title
   if ( defined $LegendTitle ) {
     my $xLegendTitle = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMin}
       + $CompositeWidget->{RefInfoDummies}->{Legend}{SpaceBeforeCube};
@@ -406,8 +415,9 @@ sub _ViewLegend {
   # Display legend
   my $IndexColor  = 0;
   my $IndexLegend = 0;
-  $CompositeWidget->{RefInfoDummies}->{Legend}{GetIdLeg} = {};
 
+  # initialisation of balloon message
+  #$CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon} = {};
   for my $NumberLine ( 0 .. $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLine} - 1 ) {
     my $x1Cube = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMin}
       + $CompositeWidget->{RefInfoDummies}->{Legend}{SpaceBeforeCube};
@@ -463,8 +473,6 @@ sub _ViewLegend {
       if ($legendfont) {
         $CompositeWidget->itemconfigure( $Id, -font => $legendfont, );
       }
-      $CompositeWidget->{RefInfoDummies}->{Legend}{GetIdLeg}{$Tag} = $IndexLegend;
-      $CompositeWidget->{RefInfoDummies}->{Legend}{GetIdLeg}{$Tag} = $IndexLegend;
 
       $IndexColor++;
       $IndexLegend++;
@@ -475,16 +483,12 @@ sub _ViewLegend {
 
       # Text
       $xText += $CompositeWidget->{RefInfoDummies}->{Legend}{LengthOneLegend};
+      my $MixedTag = $IndexLegend . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
+      $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$Tag} = $Legende;
 
-      my $LineTag = $IndexLegend . $CompositeWidget->{RefInfoDummies}->{TAGS}{Line};
-      $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$Tag}     = $Legende;
-      $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$LineTag} = $Legende;
-
-      if ( $IndexLegend == $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} ) {
-        last LEGEND;
-      }
+      last LEGEND
+        if ( $IndexLegend == $CompositeWidget->{RefInfoDummies}->{Legend}{LegendTextNumber} );
     }
-
   }
 
   # box legend
@@ -523,7 +527,7 @@ sub _axis {
       + $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{TickWidth} );
 
   # get Height legend
-  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} ) {
+  if ( $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend} > 0 ) {
     $CompositeWidget->_Legend( $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} );
   }
 
@@ -574,10 +578,8 @@ sub _axis {
   # X axis
   # Set 2 points (CxMin,CyMin) et (CxMax,CyMin)
   # ou (Cx0,Cy0) et (CxMax,Cy0)
-  $CompositeWidget->{RefInfoDummies}->{Axis}{CxMax}               # Coordonnées CxMax
-    = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMin}           # Coordonnées CxMin
-    + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width}    # Largeur axe x
-    ;
+  $CompositeWidget->{RefInfoDummies}->{Axis}{CxMax} = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMin}
+    + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width};
 
   # Bottom x axis
   $CompositeWidget->createLine(
@@ -597,7 +599,7 @@ sub _axis {
     $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0} = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMin};
     $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0} = $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin};
 
-    $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit}
+    $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit}    # Height unit for value = 1
       = $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{Height}
       / ( $CompositeWidget->{RefInfoDummies}->{Data}{MaxYValue} - 0 );
   }
@@ -605,7 +607,7 @@ sub _axis {
   # min positive value < 0
   else {
 
-    $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit}
+    $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit}    # Height unit for value = 1
       = $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{Height}
       / ( $CompositeWidget->{RefInfoDummies}->{Data}{MaxYValue}
         - $CompositeWidget->{RefInfoDummies}->{Data}{MinYValue} );
@@ -652,9 +654,10 @@ sub _xtick {
   my $Xticky2 = $Xticky1 + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{TickHeight};
 
   # Coordinates of x values (first value)
-  my $XtickxValue = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMin};
+  my $XtickxValue = $CompositeWidget->{RefInfoDummies}->{Axis}{CxMin}
+    + ( $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick} / 2 );
   my $XtickyValue = $Xticky2 + ( $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{ScaleValuesHeight} / 2 );
-  my $NbrLeg      = scalar( @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefXLegend} } );
+  my $NbrLeg = scalar( @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefXLegend} } );
 
   my $xlabelskip = $CompositeWidget->cget( -xlabelskip );
 
@@ -675,7 +678,6 @@ sub _xtick {
     $Xtickx2 = $Xtickx1;
 
     # tick legend
-    $XtickxValue += $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick};
     my $RegexXtickselect = $CompositeWidget->cget( -xvaluesregex );
 
     if ( $data =~ m{$RegexXtickselect} ) {
@@ -694,6 +696,19 @@ sub _xtick {
           $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick}
         ],
       );
+
+      if (  defined $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick}
+        and defined $CompositeWidget->{RefInfoDummies}->{Legend}{WidthOneCaracter} )
+      {
+        my $MaxLength    = $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick};
+        my $WidthData    = $CompositeWidget->{RefInfoDummies}->{Legend}{WidthOneCaracter} * length $data;
+        my $NbrCharacter = int( $MaxLength / $CompositeWidget->{RefInfoDummies}->{Legend}{WidthOneCaracter} );
+        if ( defined $MaxLength and $WidthData > $MaxLength ) {
+          $data =~ s/^(.{$NbrCharacter}).*/$1/;
+          $data .= '...';
+        }
+      }
+
       $CompositeWidget->createText(
         $XtickxValue,
         $XtickyValue,
@@ -705,18 +720,19 @@ sub _xtick {
         ],
       );
     }
+    $XtickxValue += $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick};
   }
 
   return;
 }
 
-sub _ViewDataLines {
+sub _ViewData {
   my ($CompositeWidget) = @_;
 
-  my $legendmarkercolors = $CompositeWidget->cget( -colordata );
-  my $bezier             = $CompositeWidget->cget( -bezier );
-  my $spline             = $CompositeWidget->cget( -spline );
-  my $dash               = $CompositeWidget->cget( -dash );
+  my $RefTypemixed = $CompositeWidget->cget( -typemixed );
+  my $defaulttype  = $CompositeWidget->cget( -defaulttype );
+
+  my $RefData = $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData};
 
   # number of value for x axis
   $CompositeWidget->{RefInfoDummies}->{Data}{xtickNumber}
@@ -727,70 +743,395 @@ sub _ViewDataLines {
     = $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width}
     / ( $CompositeWidget->{RefInfoDummies}->{Data}{xtickNumber} + 1 );
 
-  my $IdData     = 0;
-  my $IndexColor = 0;
-  foreach my $RefArrayData ( @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} } ) {
+  my $NumberBarData   = 1;    # Number of bar data
+  my $NumberPointData = 1;
+  my @PointsData;             # coordinate x and y
+  my $IdData = 0;
+  $CompositeWidget->{Index}{Color}{Line} = 0;
+  $CompositeWidget->{Index}{Marker}{id}  = 0;
+
+  my @CumulateY = (0) x scalar @{ $RefData->[0] };
+
+  # each list data
+  foreach my $RefArrayData ( @{$RefData} ) {
+
+    # skipp legend
     if ( $IdData == 0 ) {
       $IdData++;
       next;
     }
-    my $NumberData = 1;    # Number of data
-    my @PointsData;        # coordinate x and y
-    foreach my $data ( @{$RefArrayData} ) {
-      unless ( defined $data ) {
-        $NumberData++;
-        next;
-      }
 
-      # coordinates x and y values
-      my $x = $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
-        + $NumberData * $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick};
-      my $y = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0}
-        - ( $data * $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit} );
-      push( @PointsData, ( $x, $y ) );
-      $NumberData++;
+    my $type = $RefTypemixed->[ $IdData - 1 ] || $defaulttype;
+    if ( $type eq 'lines' ) {
+      $CompositeWidget->_ViewDataLines( $RefArrayData, $IdData );
     }
-    my $LineColor = $legendmarkercolors->[$IndexColor];
-    unless ( defined $LineColor ) {
-      $IndexColor = 0;
-      $LineColor  = $legendmarkercolors->[$IndexColor];
+    elsif ( $type eq 'dashlines' ) {
+      $CompositeWidget->_ViewDataLines( $RefArrayData, $IdData, '.' );    # . for dash
     }
-    my $tag = $IdData . $CompositeWidget->{RefInfoDummies}->{TAGS}{Line};
-
-    # Add control points
-    my @PointsDataWithoutControlPoints;
-    if ( $spline == 1 and $bezier == 1 ) {
-      @PointsDataWithoutControlPoints = @PointsData;
-      my $RefPointsData = $CompositeWidget->_GetControlPoints( \@PointsData );
-      @PointsData = @{$RefPointsData};
+    elsif ( $type eq 'bars' ) {
+      $CompositeWidget->_ViewDataBars( $RefArrayData, \@CumulateY, $NumberBarData, $IdData );
+      $NumberBarData++;
     }
-
-    $CompositeWidget->createLine(
-      @PointsData,
-      -fill   => $LineColor,
-      -tags   => [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
-      -width  => $CompositeWidget->cget( -linewidth ),
-      -smooth => $bezier,
-      -dash   => $dash,
-    );
-
-    # Display values above each points of lines
-    my $LineNumber = $IdData - 1;
-    if (@PointsDataWithoutControlPoints) {
-      @PointsData                     = @PointsDataWithoutControlPoints;
-      @PointsDataWithoutControlPoints = ();
-      undef @PointsDataWithoutControlPoints;
+    elsif ( $type eq 'points' ) {
+      $CompositeWidget->_ViewDataPoints( $RefArrayData, $IdData );
+      $NumberPointData++;
     }
-
-    if ( !( $spline == 0 and $bezier == 1 ) ) {
-      $CompositeWidget->_display_line( \@PointsData, $LineNumber );
+    elsif ( $type eq 'areas' ) {
+      $CompositeWidget->_ViewDataAreas( $RefArrayData, $IdData );
     }
-
-    $CompositeWidget->{RefInfoDummies}{Line}{$tag}{color} = $LineColor;
+    else {
+      $CompositeWidget->_error( "Type '$type' unknown", 1 );
+    }
 
     $IdData++;
-    $IndexColor++;
   }
+
+  return 1;
+}
+
+sub _ViewDataAreas {
+  my ( $CompositeWidget, $RefArrayData, $IdData ) = @_;
+
+  my $legendmarkercolors = $CompositeWidget->cget( -colordata );
+  my $viewsection        = $CompositeWidget->cget( -viewsection );
+
+  my $IndexColor = $CompositeWidget->{Index}{Color}{Line};
+  my $LineColor  = $legendmarkercolors->[$IndexColor];
+  my $NumberData = 1;
+  my $tag        = $IdData . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
+  my $tag2       = $IdData . "_$NumberData" . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
+  $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$tag2}
+    = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend}->[ $IdData - 1 ];
+  my $tag_area = $CompositeWidget->{RefInfoDummies}->{TAGS}{Area};
+
+  my @PointsData;    # coordinate x and y
+  my @DashPointsxLines;
+
+  # First point, in x axis
+  my $Fisrtx
+    = $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
+    + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick}
+    - ( $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick} / 2 );
+  my $Fisrty = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0};
+  push( @PointsData, ( $Fisrtx, $Fisrty ) );
+
+  foreach my $data ( @{$RefArrayData} ) {
+    unless ( defined $data ) {
+      $NumberData++;
+      next;
+    }
+
+    # coordinates x and y values
+    my $x
+      = $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
+      + $NumberData * $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick}
+      - ( $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick} / 2 );
+    my $y = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0}
+      - ( $data * $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit} );
+
+    push( @PointsData, ( $x, $y ) );
+
+    push( @DashPointsxLines, $x, $y );
+    $NumberData++;
+  }
+
+  # Last point, in x axis
+  my $Lastx
+    = $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
+    + ( $NumberData - 1 ) * $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick}
+    - ( $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick} / 2 );
+
+  my $Lastty = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0};
+  push( @PointsData, ( $Lastx, $Lastty ) );
+
+  $CompositeWidget->createPolygon(
+    @PointsData,
+    -fill    => $LineColor,
+    -tags    => [ $tag, $tag2, $tag_area ],
+    -width   => $CompositeWidget->cget( -linewidth ),
+    -outline => 'black',
+  );
+
+  # display Dash line
+  if ( defined $viewsection and $viewsection == 1 ) {
+    for ( my $i = 0; $i < scalar(@DashPointsxLines); $i++ ) {
+      my $IndexX1 = $i;
+      my $IndexY1 = $i + 1;
+      my $IndexX2 = $i;
+      $CompositeWidget->createLine(
+        $DashPointsxLines[$IndexX1],
+        $DashPointsxLines[$IndexY1],
+        $DashPointsxLines[$IndexX2],
+        $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0},
+        -dash => '.',
+        -tags => [ $tag, $tag_area, $CompositeWidget->{RefInfoDummies}->{TAGS}{DashLines}, ],
+      );
+      $i++;
+    }
+  }
+
+  # Display values above each points of lines
+  my $LineNumber = $IdData - 1;
+  $CompositeWidget->_display_line( \@PointsData, $LineNumber );
+
+  $CompositeWidget->{RefInfoDummies}{Line}{$tag}{color} = $LineColor;
+
+  $IndexColor++;
+  $CompositeWidget->{Index}{Color}{Line} = $IndexColor;
+  $CompositeWidget->{RefInfoDummies}{Mixed}{$tag}{color} = $LineColor;
+
+  return 1;
+}
+
+sub _ViewDataPoints {
+  my ( $CompositeWidget, $RefArrayData, $IdData ) = @_;
+
+  my $legendmarkercolors = $CompositeWidget->cget( -colordata );
+  my $markersize         = $CompositeWidget->cget( -markersize );
+  my $markers            = $CompositeWidget->cget( -markers );
+  my $IndexColor         = $CompositeWidget->{Index}{Color}{Line};
+  my $IndexMarker        = $CompositeWidget->{Index}{Marker}{id};
+  my $LineColor          = $legendmarkercolors->[$IndexColor];
+
+  my $NumMarker  = $markers->[$IndexMarker];
+  my $NumberData = 1;
+  my $tag        = $IdData . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
+  my $tag_point  = $CompositeWidget->{RefInfoDummies}->{TAGS}{Point};
+
+  $CompositeWidget->{RefInfoDummies}{Point}{$tag}{color} = $LineColor;
+
+  my @PointsData;    # coordinate x and y
+  foreach my $data ( @{$RefArrayData} ) {
+    unless ( defined $data ) {
+      $NumberData++;
+      next;
+    }
+
+    # coordinates x and y values
+    my $x
+      = $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
+      + ( $NumberData * $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick} )
+      - ( $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick} / 2 );
+    my $y = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0}
+      - ( $data * $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit} );
+
+    my $tag2 = $IdData . "_$NumberData" . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
+    $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$tag2}
+      = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend}->[ $IdData - 1 ];
+
+    my %Option = (
+      -tags  => [ $tag, $tag2, $tag_point ],
+      -width => $CompositeWidget->cget( -linewidth ),
+    );
+    my $RefType = $CompositeWidget->_GetMarkerType($NumMarker);
+    if ( $RefType->[1] == 1 ) {
+      $Option{-fill} = $LineColor;
+    }
+    if ( $NumMarker =~ m{^[125678]$} ) {
+      $Option{-outline} = $LineColor;
+    }
+
+    $CompositeWidget->_CreateType(
+      x      => $x,
+      y      => $y,
+      pixel  => $markersize,
+      type   => $RefType->[0],
+      option => \%Option,
+    );
+    $NumberData++;
+    push( @PointsData, ( $x, $y ) );
+  }
+
+  # Display values above each points of lines
+  my $LineNumber = $IdData - 1;
+  $CompositeWidget->_display_line( \@PointsData, $LineNumber );
+
+  $IndexColor++;
+  $CompositeWidget->{Index}{Color}{Line} = $IndexColor;
+  $IndexMarker++;
+  $CompositeWidget->{Index}{Marker}{id} = $IndexMarker;
+  $CompositeWidget->{RefInfoDummies}{Mixed}{$tag}{color} = $LineColor;
+
+  return 1;
+}
+
+sub _ViewDataBars {
+  my ( $CompositeWidget, $RefArrayData, $RefCumulateY, $NumberBarData, $IdData ) = @_;
+
+  my $legendmarkercolors = $CompositeWidget->cget( -colordata );
+  my $overwrite          = $CompositeWidget->cget( -overwrite );
+  my $cumulate           = $CompositeWidget->cget( -cumulate );
+  my $spacingbar         = $CompositeWidget->cget( -spacingbar );
+  my $showvalues         = $CompositeWidget->cget( -showvalues );
+  my $IndexColor         = $CompositeWidget->{Index}{Color}{Line};
+  my $LineColor          = $legendmarkercolors->[$IndexColor];
+  my $NumberData         = 1;                                                 # Number of data
+  my $tag_bar            = $CompositeWidget->{RefInfoDummies}->{TAGS}{Bar};
+
+  my $WidthBar = $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick}
+    / $CompositeWidget->{RefInfoDummies}->{Data}{NumberRealDataBars};
+
+  foreach my $data ( @{$RefArrayData} ) {
+    unless ( defined $data ) {
+      push @{$RefCumulateY}, 0;
+      $NumberData++;
+      next;
+    }
+
+    my ( $x, $y, $x0, $y0 ) = ();
+    if ( $overwrite == 1 or $cumulate == 1 ) {
+
+      # coordinates x and y values
+      $x = $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
+        + $NumberData * $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick};
+      $y = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0}
+        - ( $data * $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit} );
+
+      # coordinates x0 and y0 values
+      $x0 = $x - $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick};
+      $y0 = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0};
+
+      # cumulate bars
+      if ( $cumulate == 1 ) {
+
+        $y -= $RefCumulateY->[ $NumberData - 1 ];
+        $y0 = $y + ( $data * $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit} );
+
+        $RefCumulateY->[ $NumberData - 1 ]
+          += ( $data * $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit} );
+      }
+
+      # space between bars
+      if ( $spacingbar == 1 ) {
+        $x -= $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick} / 4;
+        $x0 += $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick} / 4;
+      }
+    }
+
+    # No overwrite
+    else {
+      $x
+        = $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
+        + $NumberData * $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick}
+        - ( ( $CompositeWidget->{RefInfoDummies}->{Data}{NumberRealDataBars} - $NumberBarData ) * $WidthBar );
+      $y = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0}
+        - ( $data * $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit} );
+
+      # coordinates x0 and y0 values
+      $x0 = $x - $WidthBar;
+      $y0 = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0};
+
+      # space between bars
+      if ( $spacingbar == 1 ) {
+        $x -= $WidthBar / 4;
+        $x0 += $WidthBar / 4;
+      }
+    }
+
+    my $tag  = $IdData . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
+    my $tag2 = $IdData . "_$NumberData" . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
+    $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$tag2}
+      = "Sample : $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[0]->[$NumberData-1]\n"
+      . "Value : $data";
+
+    $CompositeWidget->createRectangle(
+      $x0, $y0, $x, $y,
+      -fill  => $LineColor,
+      -tags  => [ $tag, $tag2, $tag_bar ],
+      -width => $CompositeWidget->cget( -linewidth ),
+    );
+    if ( $showvalues == 1 ) {
+      $CompositeWidget->createText(
+        $x0 + ( $x - $x0 ) / 2, $y - 8,
+        -text => $data,
+        -font => $CompositeWidget->{RefInfoDummies}->{Font}{DefaultBarValues},
+        -tags => [ $tag, $tag_bar, $CompositeWidget->{RefInfoDummies}->{TAGS}{BarValues} ],
+      );
+    }
+
+    $CompositeWidget->{RefInfoDummies}{Mixed}{$tag}{color} = $LineColor;
+    $NumberData++;
+  }
+
+  $IndexColor++;
+  $CompositeWidget->{Index}{Color}{Line} = $IndexColor;
+  return 1;
+}
+
+sub _ViewDataLines {
+  my ( $CompositeWidget, $RefArrayData, $IdData, $dash ) = @_;
+
+  my $legendmarkercolors = $CompositeWidget->cget( -colordata );
+  my $bezier             = $CompositeWidget->cget( -bezier );
+  my $spline             = $CompositeWidget->cget( -spline );
+
+  my $IndexColor = $CompositeWidget->{Index}{Color}{Line};
+  my $LineColor  = $legendmarkercolors->[$IndexColor];
+  my $NumberData = 1;                                        # Number of data
+  my $tag_line;
+  if ( defined $dash ) {
+    $tag_line = $CompositeWidget->{RefInfoDummies}->{TAGS}{Line};
+  }
+  else {
+    $tag_line = $CompositeWidget->{RefInfoDummies}->{TAGS}{PointLine};
+  }
+  my $tag2 = $IdData . "_$NumberData" . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
+  $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$tag2}
+    = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend}->[ $IdData - 1 ];
+
+  my @PointsData;                                            # coordinate x and y
+  foreach my $data ( @{$RefArrayData} ) {
+    unless ( defined $data ) {
+      $NumberData++;
+      next;
+    }
+
+    # coordinates x and y values
+    my $x
+      = ( $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
+        + $NumberData * $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick} )
+      - ( $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick} / 2 );
+    my $y = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0}
+      - ( $data * $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit} );
+    push( @PointsData, ( $x, $y ) );
+    $NumberData++;
+  }
+
+  my $tag = $IdData . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
+
+  # Add control points
+  my @PointsDataWithoutControlPoints;
+  if ( $spline == 1 and $bezier == 1 ) {
+    @PointsDataWithoutControlPoints = @PointsData;
+    my $RefPointsData = $CompositeWidget->_GetControlPoints( \@PointsData );
+    @PointsData = @{$RefPointsData};
+  }
+
+  $CompositeWidget->createLine(
+    @PointsData,
+    -fill   => $LineColor,
+    -tags   => [ $tag, $tag2, $tag_line ],
+    -width  => $CompositeWidget->cget( -linewidth ),
+    -smooth => $bezier,
+    -dash   => $dash,
+  );
+
+  # Display values above each points of lines
+  my $LineNumber = $IdData - 1;
+  if (@PointsDataWithoutControlPoints) {
+    @PointsData                     = @PointsDataWithoutControlPoints;
+    @PointsDataWithoutControlPoints = ();
+    undef @PointsDataWithoutControlPoints;
+  }
+
+  if ( !( $spline == 0 and $bezier == 1 ) ) {
+    $CompositeWidget->_display_line( \@PointsData, $LineNumber );
+  }
+
+  $CompositeWidget->{RefInfoDummies}{Mixed}{$tag}{color} = $LineColor;
+
+  $IndexColor++;
+  $CompositeWidget->{Index}{Color}{Line} = $IndexColor;
 
   if ( $spline == 0 and $bezier == 1 and $CompositeWidget->{RefInfoDummies}->{Data}{RefDataToDisplay} ) {
     $CompositeWidget->_error(
@@ -800,102 +1141,59 @@ sub _ViewDataLines {
   return 1;
 }
 
-sub _ViewDataPoints {
-  my ($CompositeWidget) = @_;
+sub display_order {
+  my ( $CompositeWidget, $ref_order ) = @_;
 
-  my $legendmarkercolors = $CompositeWidget->cget( -colordata );
-  my $markersize         = $CompositeWidget->cget( -markersize );
-  my $markers            = $CompositeWidget->cget( -markers );
-
-  # number of value for x axis
-  $CompositeWidget->{RefInfoDummies}->{Data}{xtickNumber}
-    = $CompositeWidget->{RefInfoDummies}->{Data}{NumberXValues};
-
-  # Space between x ticks
-  $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick}
-    = $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width}
-    / ( $CompositeWidget->{RefInfoDummies}->{Data}{xtickNumber} + 1 );
-
-  my $IdData      = 0;
-  my $IndexColor  = 0;
-  my $IndexMarker = 0;
-  foreach my $RefArrayData ( @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} } ) {
-    if ( $IdData == 0 ) {
-      $IdData++;
-      next;
-    }
-
-    my $LineColor = $legendmarkercolors->[$IndexColor];
-    my $NumMarker = $markers->[$IndexMarker];
-    unless ( defined $LineColor ) {
-      $IndexColor = 0;
-      $LineColor  = $legendmarkercolors->[$IndexColor];
-    }
-    unless ( defined $NumMarker ) {
-      $IndexMarker = 0;
-      $NumMarker   = $markers->[$IndexMarker];
-    }
-    my $tag = $IdData . $CompositeWidget->{RefInfoDummies}->{TAGS}{Line};
-    $CompositeWidget->{RefInfoDummies}{Line}{$tag}{color} = $LineColor;
-
-    my $NumberData = 1;    # Number of data
-    my @PointsData;        # coordinate x and y
-    foreach my $data ( @{$RefArrayData} ) {
-      unless ( defined $data ) {
-        $NumberData++;
-        next;
-      }
-
-      # coordinates x and y values
-      my $x = $CompositeWidget->{RefInfoDummies}->{Axis}{Cx0}
-        + $NumberData * $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick};
-      my $y = $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0}
-        - ( $data * $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{HeightUnit} );
-
-      my %Option = (
-        -tags  => [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
-        -width => $CompositeWidget->cget( -linewidth ),
-      );
-      my $RefType = $CompositeWidget->_GetMarkerType($NumMarker);
-      if ( $RefType->[1] == 1 ) {
-        $Option{-fill} = $LineColor;
-      }
-      if ( $NumMarker =~ m{^[125678]$} ) {
-        $Option{-outline} = $LineColor;
-      }
-
-      $CompositeWidget->_CreateType(
-        x      => $x,
-        y      => $y,
-        pixel  => $markersize,
-        type   => $RefType->[0],
-        option => \%Option,
-      );
-      $NumberData++;
-      push( @PointsData, ( $x, $y ) );
-    }
-
-    # Display values above each points of lines
-    my $LineNumber = $IdData - 1;
-    $CompositeWidget->_display_line( \@PointsData, $LineNumber );
-
-    $IdData++;
-    $IndexColor++;
-    $IndexMarker++;
+  unless ( defined $ref_order ) {
+    $ref_order = $CompositeWidget->{RefInfoDummies}->{Mixed}{Display}{Order};
+    return unless defined $ref_order;
   }
 
-  return 1;
+  my %TAG = (
+    areas       => $CompositeWidget->{RefInfoDummies}->{TAGS}{Area},
+    bars        => $CompositeWidget->{RefInfoDummies}->{TAGS}{Bar},
+    lines       => $CompositeWidget->{RefInfoDummies}->{TAGS}{Line},
+    dashlines => $CompositeWidget->{RefInfoDummies}->{TAGS}{PointLine},
+    points      => $CompositeWidget->{RefInfoDummies}->{TAGS}{Point},
+  );
+
+  # Get order from user and store it
+  my @order = grep { exists $TAG{$_} } _delete_array_doublon($ref_order);
+  $TAG{xTick} = $CompositeWidget->{RefInfoDummies}->{TAGS}{xTick};
+  push( @order, 'xTick' );
+
+  # tag pile order
+  for ( my $i = 0; $i <= $#order; $i++ ) {
+    for ( my $next = $i + 1; $next <= $#order; $next++ ) {
+      $CompositeWidget->raise( $TAG{ $order[$next] }, $TAG{ $order[$i] } );
+    }
+  }
+
+  $CompositeWidget->{RefInfoDummies}->{Mixed}{Display}{Order} = $ref_order;
+  return;
 }
 
 sub plot {
   my ( $CompositeWidget, $RefData, %option ) = @_;
 
-  my $yticknumber = $CompositeWidget->cget( -yticknumber );
+  my $overwrite    = $CompositeWidget->cget( -overwrite );
+  my $cumulate     = $CompositeWidget->cget( -cumulate );
+  my $yticknumber  = $CompositeWidget->cget( -yticknumber );
+  my $RefTypemixed = $CompositeWidget->cget( -typemixed );
 
   if ( defined $option{-substitutionvalue}
     and _isANumber( $option{-substitutionvalue} ) )
   {
     $CompositeWidget->{RefInfoDummies}->{Data}{SubstitutionValue} = $option{-substitutionvalue};
+  }
+
+  $CompositeWidget->{RefInfoDummies}->{Data}{NumberRealDataBars} = 0;
+  if ( defined $RefTypemixed ) {
+    foreach my $type ( @{$RefTypemixed} ) {
+      if ( defined $type and $type eq 'bars' ) {
+        $CompositeWidget->{RefInfoDummies}->{Data}{NumberRealDataBars}++;
+      }
+    }
   }
 
   unless ( defined $RefData ) {
@@ -910,15 +1208,18 @@ sub plot {
 
   # Check legend and data size
   if ( my $RefLegend = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend} ) {
-    $CompositeWidget->_CheckSizeLengendAndData( $RefData, $RefLegend );
+    unless ( $CompositeWidget->_CheckSizeLengendAndData( $RefData, $RefLegend ) ) {
+      undef $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend};
+    }
   }
 
   # Check array size
   $CompositeWidget->{RefInfoDummies}->{Data}{NumberXValues} = scalar @{ $RefData->[0] };
-  my $i = 0;
+  my $i         = 0;
+  my @arrayTemp = (0) x scalar @{ $RefData->[0] };
   foreach my $RefArray ( @{$RefData} ) {
     unless ( scalar @{$RefArray} == $CompositeWidget->{RefInfoDummies}->{Data}{NumberXValues} ) {
-      $CompositeWidget->_error( 'Make sure that every array has the same size in plot data method', 1 );
+      $CompositeWidget->_error( 'Make sure that every array has the ' . 'same size in plot data method', 1 );
       return;
     }
 
@@ -926,12 +1227,16 @@ sub plot {
     if ( $i != 0 ) {
 
       # substitute none real value
+      my $j = 0;
       foreach my $data ( @{$RefArray} ) {
         if ( defined $data and !_isANumber($data) ) {
           $data = $CompositeWidget->{RefInfoDummies}->{Data}{SubstitutionValue};
         }
+        elsif ( defined $data ) {
+          $arrayTemp[$j] += $data;    # For cumulate option
+        }
+        $j++;
       }
-
       $CompositeWidget->{RefInfoDummies}->{Data}{MaxYValue}
         = _MaxArray( [ $CompositeWidget->{RefInfoDummies}->{Data}{MaxYValue}, _MaxArray($RefArray) ] );
       $CompositeWidget->{RefInfoDummies}->{Data}{MinYValue}
@@ -939,32 +1244,36 @@ sub plot {
     }
     $i++;
   }
-  $CompositeWidget->{RefInfoDummies}->{Data}{RefXLegend}  = $RefData->[0];
-  $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}  = $RefData;
-  $CompositeWidget->{RefInfoDummies}->{Data}{PlotDefined} = 1;
+  $CompositeWidget->{RefInfoDummies}->{Data}{RefXLegend} = $RefData->[0];
+  $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} = $RefData;
+
+  if ( $cumulate == 1 ) {
+    $CompositeWidget->{RefInfoDummies}->{Data}{MaxYValue} = _MaxArray( \@arrayTemp );
+    $CompositeWidget->{RefInfoDummies}->{Data}{MinYValue} = _MinArray( \@arrayTemp );
+  }
 
   if ( $CompositeWidget->{RefInfoDummies}->{Data}{MinYValue} > 0 ) {
     $CompositeWidget->{RefInfoDummies}->{Data}{MinYValue} = 0;
   }
-
   while ( ( $CompositeWidget->{RefInfoDummies}->{Data}{MaxYValue} / $yticknumber ) % 5 != 0 ) {
     $CompositeWidget->{RefInfoDummies}->{Data}{MaxYValue}
       = int( $CompositeWidget->{RefInfoDummies}->{Data}{MaxYValue} + 1 );
   }
 
+  # Plotting ok
+  $CompositeWidget->{RefInfoDummies}->{Data}{PlotDefined} = 1;
   $CompositeWidget->_GraphForDummiesConstruction;
 
   return 1;
 }
 
 1;
-
 __END__
 
 
 =head1 NAME
 
-Tk::ForDummies::Graph::Lines - Extension of Canvas widget to create a line graph. 
+Tk::ForDummies::Graph::Mixed - Extension of Canvas widget to create mixed graph. 
 
 =head1 SYNOPSIS
 
@@ -972,53 +1281,67 @@ Tk::ForDummies::Graph::Lines - Extension of Canvas widget to create a line graph
   use strict;
   use warnings;
   use Tk;
-  use Tk::ForDummies::Graph::Lines;
-
+  use Tk::ForDummies::Graph::Mixed;
+  use Tk::Pane;
+  
   my $mw = new MainWindow(
-    -title      => 'Tk::ForDummies::Graph::Lines example',
+    -title      => 'Tk::ForDummies::Graph::Mixed',
     -background => 'white',
   );
-  my $GraphDummies = $mw->Lines(
-    -title  => 'My graph title',
-    -xlabel => 'X Label',
-    -ylabel => 'Y Label',
+  
+  my @types = ( 'areas', 'bars', 'lines', 'points', 'bars', 'dashlines' );
+  my $GraphDummies = $mw->Mixed(
+    -title      => 'Tk::ForDummies::Graph::Mixed',
+    -xlabel     => 'X Label',
+    -ylabel     => 'Y Label',
+    -background => '#D0D0FF',
+    -linewidth  => 2,
+    -typemixed  => \@types,
+    -markers    => [ 3, 5, 6 ],
+  
+    -longticks => 1,
   )->pack(qw / -fill both -expand 1 /);
-
+  
   my @data = (
     [ '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th' ],
-    [ 1,     2,     5,     6,     3,     1.5,   1,     3,     4 ],
-    [ 4,     2,     5,     2,     3,     5.5,   7,     9,     4 ],
-    [ 1,     2,     52,    6,     3,     17.5,  1,     43,    10 ]
+    [ 90,    29,    25,    6,     -20,   1,     1,     3,     4 ],
+    [ 15,    10,    5,     2,     3,     5,     7,     9,     12 ],
+    [ 1,     2,     12,    6,     3,     5,     1,     23,    5 ],
+    [ 15,    12,    24,    33,    19,    8,     6,     15,    21 ],
+    [ 15,    2,     52,    6,     3,     17.5,  1,     43,    10 ],
+    [ 30,    2,     5,     6,     3,     1.5,   1,     3,     4 ],
+    [ 24,    12,    35,    20,    13,    31.5,  41,    6,     25 ],
+  
   );
-
+  
   # Add a legend to the graph
-  my @Legends = ( 'legend 1', 'legend 2', 'legend 3' );
+  my @Legends = @types;
   $GraphDummies->set_legend(
-    -title       => 'Title legend',
-    -data        => \@Legends,
-    -titlecolors => 'blue',
+    -title       => "Title legend",
+    -data        => [ 'legend 1', 'legend 2', 'legend 3', 'legend 4', 'legend 5', 'legend 6', 'legend 7', ],
+    -titlecolors => "blue",
   );
-
+  
   # Add help identification
   $GraphDummies->set_balloon();
-
+  
   # Create the graph
   $GraphDummies->plot( \@data );
-
+  
+  # background order wanted
+  $GraphDummies->display_order( [qw/ areas bars lines  dashlines points /] );
+  
   MainLoop();
 
 =head1 DESCRIPTION
 
-Tk::ForDummies::Graph::Lines is an extension of the Canvas widget. It is an easy way to build an 
-interactive line graph into your Perl Tk widget. The module is written entirely in Perl/Tk.
+Tk::ForDummies::Graph::Mixed is an extension of the Canvas widget. It is an easy way to build an 
+interactive graph into your Perl Tk widget. The module is written entirely in Perl/Tk.
 
+In the same graph, you can create lines, bars, areas, line points, points.
 You can change the color, font of title, labels (x and y) of the graph.
 You can set an interactive legend.  
 The axes can be automatically scaled or set by the code. 
-With this module it is possible to plot quantitative variables according to qualitative variables.
-
-When the mouse cursor passes over a plotted line or its entry in the legend, 
-the line and its entry will be turned to a color (that you can change) to help identify it. 
 
 You can use 3 methods to zoom (vertically, horizontally or both).
 
@@ -1032,27 +1355,50 @@ B<-selectbackground>    B<-selectborderwidth> B<-selectforeground>     B<-takefo
 B<-width>               B<-xscrollcommand>    B<-xscrollincrement>     B<-yscrollcommand> 
 B<-yscrollincrement>
 
-=head1 WIDGET-SPECIFIC OPTIONS 
+=head1 WIDGET-SPECIFIC OPTIONS
+
+=over 4
+
+=item Name:	B<Typemixed>
+
+=item Class:	B<TypeMixed>
+
+=item Switch:	B<-typemixed>
+
+This controls the graph types to display in the same order as data set. This should be a reference to an array of graph types.
+
+The different types are : B<areas>, B<bars>, B<lines>, B<dashlines> and B<points>
+
+ -typemixed => [ 'areas', 'bars', 'lines' ]
+ -typemixed => [ 'lines',  undef, 'areas' ]
+
+values that are undefined will be set to -defaulttype option.
+
+Default : B<undef>
+
+=item Name:	B<Defaulttype>
+
+=item Class:  B<DefaultType>
+
+=item Switch: B<-defaulttype>
+
+The type of graph to draw for data sets that either have no type set, or that have undef type set.
+
+The different types are : B<areas>, B<bars>, B<lines>, B<dashlines> or B<points>
+
+ -defaulttype => 'bars',
+
+Default : B<'lines'>
+
+=back
+
+
+=head1 WIDGET-SPECIFIC OPTIONS like Tk::ForDummies::Graph::Lines
 
 Many options allow you to configure your graph as you want. 
 The default configuration is already OK, but you can change it.
 
-=head3 Options for all lines graph
-
 =over 4
-
-=item Name:	B<Dash>
-
-=item Class:	B<Dash>
-
-=item Switch:	B<-dash>
-
-use -dash canvas option, see L<Tk::Canvas>.
-  
- -dash => '.',
-
-Default : B<undef>
-
 
 =item Name:	B<Title>
 
@@ -1225,7 +1571,7 @@ Default : B<1>
 
 View the x values which will match with regex. It allows you to display tick on x axis and values 
 that you want. You can combine it with -xlabelskip to display many dataset.
- 
+
  ...
  ['leg1', 'leg2', 'data1', 'data2', 'symb1', 'symb2']
  ...
@@ -1530,7 +1876,7 @@ will have the color of the first array case (red).
 
 =back
 
-=head3 Options for spline lines graph
+=head1 WIDGET-SPECIFIC OPTIONS like Tk::ForDummies::Graph::Spline
 
 =over 4
 
@@ -1562,63 +1908,85 @@ Default : B<0>
 
 =back
 
-
-=head3 Options for point lines graph
-
-These options are specific to point lines graph creation.
+=head1 WIDGET-SPECIFIC OPTIONS like Tk::ForDummies::Graph::Bars
 
 =over 4
 
-=item Name:	B<Pointline>
+=item Name:	B<Overwrite>
 
-=item Class:	B<PointLine>
+=item Class:	B<OverWrite>
 
-=item Switch:	B<-pointline>
+=item Switch:	B<-overwrite>
 
-Set a true value to create point lines graph.  
+If set to 0, bars of different data sets will be drawn next to each other. 
+If set to 1, they will be drawn in front of each other.
 
- -pointline => 1, # 0 or 1
+ -overwrite => 1, # 0 or 1
 
 Default : B<0>
 
-=item Name:	B<Markersize>
+=item Name:	B<Cumulate>
 
-=item Class:	B<MarkerSize>
+=item Class:	B<Cumulate>
 
-=item Switch:	B<-markersize>
+=item Switch:	B<-cumulate>
 
-The size of the markers used in points graphs, in pixels. 
+If this attribute is set to a true value, the data sets will be cumulated. 
+This means that they will be stacked on top of each other. 
 
- -markersize => 10, # integer
+A side effect of this is that overwrite will be set to a true value.
 
-Default : B<8>
+If you have negative values in your data sets, setting this option might 
+produce odd results. Of course, the graph itself would be quite meaningless.
 
-=item Name:	B<Markers>
+ -cumulate => 1, # 0 or 1
 
-=item Class:	B<Markers>
+Default : B<0>
 
-=item Switch:	B<-markers>
+=item Name:	B<Showvalues>
 
-This controls the order of markers in points graphs. 
-This should be a reference to an array of numbers:
+=item Class:	B<ShowValues>
 
- -markers => [3, 5, 6],
+=item Switch:	B<-showvalues>
 
-  Available markers are: 
-  
-  1:  filled square 
-  2:  open square 
-  3:  horizontal cross
-  4:  diagonal cross
-  5:  filled diamond
-  6:  open diamond
-  7:  filled circle
-  8:  open circle
-  9:  horizontal line
-  10: vertical line
+Set this to 1 to display the value of each data point above the point or bar itself. 
+No effort is being made to ensure that there is enough space for the text.
 
-Default : B<[1,2,3,4,5,6,7,8]>
-Note that the last two are not part of the default list.
+If -overwrite or -cumulate set to 1, some text value could be hide by bars.
+
+ -showvalues => 0, # 0 or 1
+
+Default : B<1>
+
+=item Name:	B<Spacingbar>
+
+=item Class:	B<SpacingBar>
+
+=item Switch:	B<-spacingbar>
+
+Set this to 1 to display remove space between each bar. 
+
+ -spacingbar => 0, # 0 or 1
+
+Default : B<1>
+
+=back
+
+=head1 WIDGET-SPECIFIC OPTIONS like Tk::ForDummies::Graph::Areas
+
+=over 4
+
+=item Name:	B<Viewsection>
+
+=item Class:	B<ViewSection>
+
+=item Switch:	B<-viewsection>
+
+If set to true value, We will see area sections separate by dash lines.
+
+ -viewsection => 0, # 0 or 1
+
+Default : B<1>
 
 =back
 
@@ -1700,13 +2068,27 @@ When the graph is created and the widget size changes, the graph is automaticall
 
 =back
 
+=head2 display_order
+
+=over 4
+
+=item I<$GraphDummies>->B<display_order>(I<\@types>)
+
+Manage the display order of the various graphs.
+
+  $GraphDummies->display_order( [qw/ areas bars lines  dashlines points /] );
+
+In this example, the area will be in the background, followed by bars, lines, dashlines and points. 
+
+=back
+
 =head2 display_values
 
 =over 4
 
 =item I<$GraphDummies>->B<display_values>(I<\@data_point_value>)
 
-To plot the value of data near the points line graph, call this method to control in a generic manner.
+To plot the value of data near the point (Line, Spline, Point, Area graph), call this method to control in a generic manner.
 
   my @data_point_value = (
     [ 9,   2,   5,     6,   3,   1,   1,   3,   4 ],        # The first line data
@@ -1715,7 +2097,7 @@ To plot the value of data near the points line graph, call this method to contro
   );
   $GraphDummies->display_values( \@data_point_value );
 
-In this example, values are added above each point of the first and third lines. 
+In this example, values are added above each point of the first and third graph. 
 The second line is undef, no values are printed in the graph. 
 B value is printed above the second point of the third line data.
 
@@ -1751,7 +2133,7 @@ To display your graph the first time, plot the graph by using this method.
 I<\@data>
 
 Fill an array of arrays with the x values and the values of the datasets (I<\@data>). 
-Make sure that every array have the same size, otherwise Tk::ForDummies::Graph::Lines 
+Make sure that every array have the same size, otherwise Tk::ForDummies::Graph::Mixed 
 will complain and refuse to compile the graph.
 
  my @data = (
@@ -1789,46 +2171,8 @@ Default : B<0>
  );
   # mistake, -- and NA will be replace by 12
 
--substitutionvalue have to be a real number (ex : 12, .25, 02.25, 5.2e+11, etc ...) 
+-substitutionvalue have to be a real number (Eg : 12, .25, 02.25, 5.2e+11, ...) 
   
-
-=back
-
-=over 8
-
-=item *
-
-I<\@data_to_display>
-
-Fill an array of arrays with the values of the data to display (I<\@data_to_display>). 
-
-  my @data_to_display = (
-    [ 10, 30, 20, 30, 5, 41, 1, 23 ],
-    [ 'A', 'B',    'C', 'D', 'E', 5.5,  'F', 'G', 4 ],
-    [ 4,   'CPAN', 52,  6,   3,   17.5, 1,   43,  10 ]
-  );
-
-If you does not want to display a value for a point, you can use undef, 
-and the point value will be skipped.
-
- [ 1,     undef,     5,     6,     3,     1.5,   undef,     3,     4 ]
-
-
-=item *
-
--foreground => I<color>,
-
-Set color of text value.
-
-Default : B<black>
-
-=item *
-
--font => I<string>,
-
-Set the font to text value.
-
-  -font  => 'Times 12 {bold}', 
 
 =back
 
@@ -1836,8 +2180,8 @@ Set the font to text value.
 
 Redraw the graph. 
 
-If you have used cleargraph for any reason, it is possible to redraw the graph.
-Tk::ForDummies::Graph::Lines supports the configure and cget methods described in the L<Tk::options> manpage.
+If you have used clearchart for any reason, it is possible to redraw the graph.
+Tk::ForDummies::Graph::Mixed supports the configure and cget methods described in the L<Tk::options> manpage.
 If you use configure method to change a widget specific option, the modification will not be display. 
 If the graph was already displayed and if you not resize the widget, call B<redraw> method to 
 resolv the bug.
@@ -1851,12 +2195,10 @@ resolv the bug.
  # xlabel will be changed but not displayed if you not resize the widget.
   
  ...
- $fenetre->Button(
-   -text    => 'Change xlabel', 
-   -command => sub { 
-     $GraphDummies->configure( -xlabel => 'red' ); 
-     $GraphDummies->redraw; 
-   }, 
+ $fenetre->Button(-text => 'Change xlabel', -command => sub { 
+   $GraphDummies->configure(-xlabel => 'red'); 
+   $GraphDummies->redraw; 
+   } 
  )->pack;
  ...
  # OK, xlabel will be changed and displayed without resize the widget.
@@ -1891,7 +2233,7 @@ Default : B<snow>
 -colordatamouse => I<Array reference>
 
 Specify an array reference wich contains 2 colors. The first color specifies 
-the color of the line when mouse cursor passes over an entry in the legend. If the line 
+the color of the line when mouse cursor passes over a entry in the legend. If the line 
 has the same color, the second color will be used.
 
  -colordatamouse => ['blue', 'green'],
@@ -1899,16 +2241,6 @@ has the same color, the second color will be used.
 Default : -colordatamouse => B<[ '#7F9010', '#CB89D3' ]>
 
 =item *
-
--morepixelselected => I<integer>
-
-When the mouse cursor passes over an entry in the legend, 
-the line width increase. 
-
- -morepixelselected => 5,
-
-Default : B<2>
-
 
 =back
 
@@ -2052,184 +2384,18 @@ Please report any bugs or feature requests to C<bug-Tk-ForDummies-Graph at rt.cp
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Tk-ForDummies-Graph>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-=head1 EXAMPLES
-
-No legend
-
-  #!/usr/bin/perl
-  use strict;
-  use warnings;
-  use Tk;
-  use Tk::ForDummies::Graph::Bars;
-  
-  my $mw = new MainWindow(
-    -title      => 'Tk::ForDummies::Graph::Bars No legend',
-    -background => 'white',
-  );
-  
-  my $GraphDummies = $mw->Bars(
-    -title  => 'My graph title - no legend',
-    -xlabel => 'X Label',
-    -ylabel => 'Y Label',
-  )->pack(qw / -fill both -expand 1 /);
-  
-  my @data = (
-    [ '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th' ],
-    [ 4,     0,     16,    2,     3,     5.5,   7,     5,     02 ],
-    [ 1,     2,     4,     6,     3,     17.5,  1,     20,    10 ]
-  );
-  
-  # Create the graph
-  $GraphDummies->plot( \@data );
-  
-  MainLoop();
-
-
-Just negative values
-
-  #!/usr/bin/perl
-  use strict;
-  use warnings;
-  use Tk;
-  use Tk::ForDummies::Graph::Lines;
-
-  my $mw = new MainWindow(
-    -title      => 'Tk::ForDummies::Graph::Lines example - negative values',
-    -background => 'white',
-  );
-
-  my $GraphDummies = $mw->Lines(
-    -title        => 'My graph title',
-    -xlabel       => 'X Label',
-    -ylabel       => 'Y Label',
-    -zeroaxisonly => 1,
-  )->pack(qw / -fill both -expand 1 /);
-
-  my @data = (
-    [ '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th' ],
-    [ 4,     -4,    -16,   -2,    -3,    -5.5,  -7,    -5,    -2 ],
-    [ -1,    -2,    -4,    -6,    -3,    -17.5, -1,    -20,   -10 ]
-  );
-
-  # Create the graph
-  $GraphDummies->plot( \@data );
-  
-  MainLoop();
-
-Create a zoom Menu with the graph.
-
-  #!/usr/bin/perl
-  use strict;
-  use warnings;
-  use Tk;
-  use Tk::ForDummies::Graph::Lines;
-
-  my $mw = new MainWindow(
-    -title => 'Tk::ForDummies::Graph::Lines example with legend and zoom menu',
-    -background => 'white',
-  );
-
-  my $GraphDummies = $mw->Lines(
-    -title      => 'My graph title',
-    -xlabel     => 'X Label',
-    -ylabel     => 'Y Label',
-    -linewidth  => 2,
-    -background => 'white',
-  )->pack(qw / -fill both -expand 1 /);
-
-  my @data = (
-    [ '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th' ],
-    [ 1,     2,     5,     -6,    3,     1.5,   1,     3,     4 ],
-    [ 4,     0,     16,    2,     3,     5.5,   7,     5,     02 ],
-    [ 1,     2,     4,     6,     3,     17.5,  1,     20,    10 ]
-  );
-
-  # Add a legend to our graph
-  my @Legends = ( 'legend 1', 'legend 2', 'legend 3' );
-  $GraphDummies->set_legend(
-    -title       => 'Title legend',
-    -data        => \@Legends,
-    -titlecolors => 'blue',
-  );
-
-  # I can see the legend text when mouse pass on line and
-  # the line change color when mouse pass on legend text
-  $GraphDummies->set_balloon();
-
-  # Create the graph
-  $GraphDummies->plot( \@data );
-
-  $GraphDummies->add_data( [ 1 .. 9 ], 'legend  4' );
-
-  my $menu = Menu( $GraphDummies, [qw/30 50 80 100 150 200/] );
-
-  MainLoop();
-
-  sub CanvasMenu {
-    my ( $Canvas, $x, $y, $CanvasMenu ) = @_;
-    $CanvasMenu->post( $x, $y );
-
-    return;
-  }
-
-  sub Menu {
-    my ( $GraphDummies, $RefData ) = @_;
-    my %MenuConfig = (
-      -tearoff    => 0,
-      -takefocus  => 1,
-      -background => 'white',
-      -menuitems  => [],
-    );
-    my $Menu = $GraphDummies->Menu(%MenuConfig);
-    $Menu->add( 'cascade', -label => 'Zoom' );
-    $Menu->add( 'cascade', -label => 'Zoom X-axis' );
-    $Menu->add( 'cascade', -label => 'Zoom Y-axis' );
-
-    my $SsMenuZoomX = $Menu->Menu(%MenuConfig);
-    my $SsMenuZoomY = $Menu->Menu(%MenuConfig);
-    my $SsMenuZoom  = $Menu->Menu(%MenuConfig);
-
-    for my $Zoom ( @{$RefData} ) {
-      $SsMenuZoom->add(
-        'command',
-        -label   => '$Zoom %',
-        -command => sub { $GraphDummies->zoom($Zoom); }
-      );
-      $SsMenuZoomX->add(
-        'command',
-        -label   => '$Zoom %',
-        -command => sub { $GraphDummies->zoomx($Zoom); }
-      );
-      $SsMenuZoomY->add(
-        'command',
-        -label   => '$Zoom %',
-        -command => sub { $GraphDummies->zoomy($Zoom); }
-      );
-
-    }
-
-    $Menu->entryconfigure( 'Zoom X-axis', -menu => $SsMenuZoomX );
-    $Menu->entryconfigure( 'Zoom Y-axis', -menu => $SsMenuZoomY );
-    $Menu->entryconfigure( 'Zoom',        -menu => $SsMenuZoom );
-
-    $GraphDummies->Tk::bind( '<ButtonPress-3>',
-      [ \&CanvasMenu, Ev('X'), Ev('Y'), $Menu, $GraphDummies ] );
-
-    return $Menu;
-  }
-
 
 =head1 SEE ALSO
 
 See L<Tk::Canvas> for details of the standard options.
 
-See L<Tk::ForDummies::Graph>, L<Tk::ForDummies::Graph::FAQ>, L<GD::Graph>, L<Tk::Graph>, L<Tk::LineGraph>, L<Tk::PlotDataset>
+See L<Tk::ForDummies::Graph>, L<Tk::ForDummies::Graph::FAQ>, L<GD::Graph>, L<Tk::Graph>.
 
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Tk::ForDummies::Graph::Lines
+    perldoc Tk::ForDummies::Graph::Mixed
 
 
 You can also look for information at:

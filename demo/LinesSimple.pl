@@ -5,12 +5,12 @@ use Tk;
 use Tk::ForDummies::Graph::Lines;
 
 my $mw = new MainWindow(
-  -title      => 'Tk::ForDummies::Graph::Lines example',
+  -title      => 'Tk::ForDummies::Graph::Lines',
   -background => 'white',
 );
 my $GraphDummies = $mw->Lines(
   -background => 'snow',
-  -title      => 'My chart title',
+  -title      => 'My graph title',
   -xlabel     => 'X Label',
   -ylabel     => 'Y Label',
   -linewidth  => 2,
@@ -23,18 +23,18 @@ my @data = (
   [ 1,     2,     52,    6,     3,     17.5,  1,     43,    10 ]
 );
 
-# Add a legend to the chart
+# Add a legend to the graph
 my @Legends = ( 'legend 1', 'legend 2', 'legend 3' );
 $GraphDummies->set_legend(
-  -title       => "Title legend",
+  -title       => 'Title legend',
   -data        => \@Legends,
-  -titlecolors => "blue",
+  -titlecolors => 'blue',
 );
 
 # Add help identification
 $GraphDummies->set_balloon();
 
-# Create the chart
+# Create the graph
 $GraphDummies->plot( \@data );
 
 MainLoop();

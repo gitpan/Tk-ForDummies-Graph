@@ -10,7 +10,7 @@ my $mw = new MainWindow(
 );
 
 my $GraphDummies = $mw->Bars(
-  -title      => 'My chart title - no legend',
+  -title      => 'Tk::ForDummies::Graph::Bars - no legend',
   -xlabel     => 'X Label',
   -background => 'snow',
   -ylabel     => 'Y Label',
@@ -22,6 +22,6 @@ my @data = (
   [ 1,     2,     4,     6,     3,     17.5,  1,     20,    10 ]
 );
 
-# Create the chart
+# Create the graph
 $GraphDummies->plot( \@data );
 MainLoop();

@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tk::ForDummies::Graph::Points - To create point lines chart. 
+Tk::ForDummies::Graph::Points - To create point lines graph. 
 
 =head1 SYNOPSIS
 
@@ -26,7 +26,7 @@ L<Tk::ForDummies::Graph::Lines/"Options for point lines graph">
     -background => 'white',
   );
   my $GraphDummies = $mw->Lines(
-    -title  => 'My chart title',
+    -title  => 'My graph title',
     -xlabel => 'X Label',
     -ylabel => 'Y Label',
     -pointline => 1,
@@ -40,18 +40,18 @@ L<Tk::ForDummies::Graph::Lines/"Options for point lines graph">
   );
 
 
-  # Add a legend to the chart
+  # Add a legend to the graph
   my @Legends = ( 'legend 1', 'legend 2', 'legend 3' );
   $GraphDummies->set_legend(
-    -title       => "Title legend",
+    -title       => 'Title legend',
     -data        => \@Legends,
-    -titlecolors => "blue",
+    -titlecolors => 'blue',
   );
 
   # Add help identification
   $GraphDummies->set_balloon();
 
-  # Create the chart
+  # Create the graph
   $GraphDummies->plot( \@data );
 
   MainLoop();
@@ -62,7 +62,7 @@ See L<Tk::ForDummies::Lines>, L<Tk::ForDummies::Graph::FAQ>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Djibril Ousmanou, all rights reserved.
+Copyright 2010 Djibril Ousmanou, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

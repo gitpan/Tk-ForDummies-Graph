@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tk::ForDummies::Graph::Splines - To create lines chart as BE<eacute>zier curve. 
+Tk::ForDummies::Graph::Splines - To create lines graph as BE<eacute>zier curve. 
 
 =head1 SYNOPSIS
 
@@ -12,10 +12,12 @@ You have to use B<Tk::ForDummies::Graph::Lines> module and use
 B<-spline> and B<-bezier> options.
 
 See L<Tk::ForDummies::Graph::Lines/"Options for all lines graph"> and 
-L<Tk::ForDummies::Graph::Lines/"Options for spline graph">
+L<Tk::ForDummies::Graph::Lines/"Options for spline lines graph">
 
 
 B<Be careful>, a BE<eacute>zier curve (L<http://en.wikipedia.org/wiki/Bezier_curve>) does not touch all points of dataset, just the extremity points.
+
+But, B<Tk::ForDummies::Graph::Lines> allow you to create a BE<eacute>zier curve crossing by all points (-bezier => 1 and -spline => 1).
 
 
 =head1 EXAMPLES
@@ -48,18 +50,18 @@ B<Be careful>, a BE<eacute>zier curve (L<http://en.wikipedia.org/wiki/Bezier_cur
   
   );
  
-  # Add a legend to the chart
+  # Add a legend to the graph
   my @Legends = ( 'legend 1', 'legend 2', 'legend 3' );
   $GraphDummies->set_legend(
-    -title       => "Title legend",
+    -title       => 'Title legend',
     -data        => \@Legends,
-    -titlecolors => "blue",
+    -titlecolors => 'blue',
   );
 
   # Add help identification
   $GraphDummies->set_balloon();
 
-  # Create the chart
+  # Create the graph
   $GraphDummies->plot( \@data );
 
   MainLoop();
@@ -70,7 +72,7 @@ See L<Tk::ForDummies::Lines>, L<Tk::ForDummies::Graph::FAQ>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Djibril Ousmanou, all rights reserved.
+Copyright 2010 Djibril Ousmanou, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

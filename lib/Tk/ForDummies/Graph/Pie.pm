@@ -6,13 +6,13 @@ use Carp;
 
 #==================================================================
 # Author    : Djibril Ousmanou
-# Copyright : 2009
-# Update    : 12/05/2009 15:53:31
-# AIM       : Create pie chart
+# Copyright : 2010
+# Update    : 21/05/2010 22:29:01
+# AIM       : Create pie graph
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -34,88 +34,42 @@ sub Populate {
   $CompositeWidget->ConfigSpecs(
     -title      => [ 'PASSIVE', 'Title',      'Title',      undef ],
     -titlecolor => [ 'PASSIVE', 'Titlecolor', 'TitleColor', 'black' ],
-    -titlefont  => [
-      'PASSIVE',   'Titlefont',
-      'TitleFont', $CompositeWidget->{RefInfoDummies}->{Font}{DefaultTitle}
-    ],
+    -titlefont =>
+      [ 'PASSIVE', 'Titlefont', 'TitleFont', $CompositeWidget->{RefInfoDummies}->{Font}{DefaultTitle} ],
     -titleposition => [ 'PASSIVE', 'Titleposition', 'TitlePosition', 'center' ],
-    -width         => [
-      'SELF',  'width',
-      'Width', $CompositeWidget->{RefInfoDummies}->{Canvas}{Width}
-    ],
-    -height => [
-      'SELF',   'height',
-      'Height', $CompositeWidget->{RefInfoDummies}->{Canvas}{Height}
-    ],
+    -width  => [ 'SELF', 'width',  'Width',  $CompositeWidget->{RefInfoDummies}->{Canvas}{Width} ],
+    -height => [ 'SELF', 'height', 'Height', $CompositeWidget->{RefInfoDummies}->{Canvas}{Height} ],
 
     -linewidth  => [ 'PASSIVE', 'Linewidth',  'LineWidth',  2 ],
     -startangle => [ 'PASSIVE', 'Startangle', 'StartAngle', 0 ],
-    -colordata  => [
-      'PASSIVE',   'Colordata',
-      'ColorData', $CompositeWidget->{RefInfoDummies}->{Legend}{Colors}
-    ],
+    -colordata =>
+      [ 'PASSIVE', 'Colordata', 'ColorData', $CompositeWidget->{RefInfoDummies}->{Legend}{Colors} ],
   );
 
   $CompositeWidget->Delegates( DEFAULT => $CompositeWidget, );
-  $CompositeWidget->Tk::bind( '<Configure>' => [ \&_GraphPie ] );
 
-}
-
-sub _GraphPie {
-  my ($CompositeWidget) = @_;
-
-  $CompositeWidget->clearchart;
-
-  # Height and Width canvas
-  $CompositeWidget->{RefInfoDummies}->{Canvas}{Width} = $CompositeWidget->width;
-  $CompositeWidget->{RefInfoDummies}->{Canvas}{Height}
-    = $CompositeWidget->height;
-
-  # Width Pie
-  $CompositeWidget->{RefInfoDummies}->{Pie}{Width}
-    = $CompositeWidget->{RefInfoDummies}->{Canvas}{Width}
-    - ( 2 * $CompositeWidget->{RefInfoDummies}->{Canvas}{WidthEmptySpace} );
-
-  if ( $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData} ) {
-    $CompositeWidget->_title;
-    $CompositeWidget->_ViewData;
-    $CompositeWidget->_ViewLegend();
-  }
-
-  return;
-}
-
-sub redraw {
-  my ($CompositeWidget) = @_;
-
-  $CompositeWidget->_GraphPie;
-
-  return;
+  # recreate graph after widget resize
+  $CompositeWidget->enabled_automatic_redraw();
 }
 
 sub plot {
   my ( $CompositeWidget, $RefData ) = @_;
 
   unless ( defined $RefData ) {
-    $CompositeWidget->_error("data not defined");
+    $CompositeWidget->_error('data not defined');
     return;
   }
 
   unless ( scalar @{$RefData} == 2 ) {
-    $CompositeWidget->_error("You must have 2 arrays in data array");
+    $CompositeWidget->_error('You must have 2 arrays in data array');
     return;
   }
 
   # Check array size
-  $CompositeWidget->{RefInfoDummies}->{Data}{NumberXValues}
-    = scalar @{ $RefData->[0] };
+  $CompositeWidget->{RefInfoDummies}->{Data}{NumberXValues} = scalar @{ $RefData->[0] };
   foreach my $RefArray ( @{$RefData} ) {
-    unless (
-      scalar @{$RefArray}
-      == $CompositeWidget->{RefInfoDummies}->{Data}{NumberXValues} )
-    {
-      $CompositeWidget->_error(
-        "Make sure that every array has the same size in plot data method", 1 );
+    unless ( scalar @{$RefArray} == $CompositeWidget->{RefInfoDummies}->{Data}{NumberXValues} ) {
+      $CompositeWidget->_error( 'Make sure that every array has the same size in plot data method', 1 );
       return;
     }
   }
@@ -127,19 +81,17 @@ sub plot {
     }
   }
 
-  $CompositeWidget->{RefInfoDummies}->{Data}{MaxValue}
-    = _MaxArray( $RefData->[1] );
-  $CompositeWidget->{RefInfoDummies}->{Data}{NbrSlice}
-    = scalar @{ $RefData->[0] };
+  $CompositeWidget->{RefInfoDummies}->{Data}{MaxValue}    = _MaxArray( $RefData->[1] );
+  $CompositeWidget->{RefInfoDummies}->{Data}{NbrSlice}    = scalar @{ $RefData->[0] };
   $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}  = $RefData;
   $CompositeWidget->{RefInfoDummies}->{Data}{PlotDefined} = 1;
 
-  $CompositeWidget->_GraphPie;
+  $CompositeWidget->_GraphForDummiesConstruction;
 
   return;
 }
 
-sub _title {
+sub _titlepie {
   my ($CompositeWidget) = @_;
 
   my $Title         = $CompositeWidget->cget( -title );
@@ -154,8 +106,7 @@ sub _title {
   }
 
   # Space before the title
-  my $WidthEmptyBeforeTitle
-    = $CompositeWidget->{RefInfoDummies}->{Canvas}{WidthEmptySpace};
+  my $WidthEmptyBeforeTitle = $CompositeWidget->{RefInfoDummies}->{Canvas}{WidthEmptySpace};
 
   # Coordinates title
   $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex}
@@ -168,40 +119,34 @@ sub _title {
   # display title
   my $anchor;
   if ( $titleposition eq 'left' ) {
-    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex}
-      = $WidthEmptyBeforeTitle;
-    $anchor = 'nw';
+    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex}  = $WidthEmptyBeforeTitle;
+    $anchor                                               = 'nw';
     $CompositeWidget->{RefInfoDummies}->{Title}{'-width'} = 0;
   }
   elsif ( $titleposition eq 'right' ) {
     $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex}
-      = $WidthEmptyBeforeTitle
-      + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width};
+      = $WidthEmptyBeforeTitle + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width};
     $CompositeWidget->{RefInfoDummies}->{Title}{'-width'} = 0;
     $anchor = 'ne';
   }
   else {
     $anchor = 'center';
   }
-  $CompositeWidget->{RefInfoDummies}->{Title}{IdTitre}
-    = $CompositeWidget->createText(
+  $CompositeWidget->{RefInfoDummies}->{Title}{IdTitre} = $CompositeWidget->createText(
     $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex},
     $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrey},
     -text   => $Title,
     -width  => $CompositeWidget->{RefInfoDummies}->{Pie}{Width},
     -anchor => $anchor,
-    );
+  );
   return if ( $anchor =~ m{^left|right$} );
 
   # get title information
   my ($Height);
   ( $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex},
     $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrey},
-    $CompositeWidget->{RefInfoDummies}->{Title}{Width},
-    $Height
-    )
-    = $CompositeWidget->bbox(
-    $CompositeWidget->{RefInfoDummies}->{Title}{IdTitre} );
+    $CompositeWidget->{RefInfoDummies}->{Title}{Width}, $Height
+  ) = $CompositeWidget->bbox( $CompositeWidget->{RefInfoDummies}->{Title}{IdTitre} );
 
   # Title too long
   if ( $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrey}
@@ -209,11 +154,9 @@ sub _title {
   {
 
     # delete title
-    $CompositeWidget->delete(
-      $CompositeWidget->{RefInfoDummies}->{Title}{IdTitre} );
+    $CompositeWidget->delete( $CompositeWidget->{RefInfoDummies}->{Title}{IdTitre} );
 
-    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex}
-      = $WidthEmptyBeforeTitle;
+    $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex} = $WidthEmptyBeforeTitle;
     $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrey}
       = $CompositeWidget->{RefInfoDummies}->{Canvas}{HeightEmptySpace}
       + ( $CompositeWidget->{RefInfoDummies}->{Title}{Height} / 2 );
@@ -222,15 +165,14 @@ sub _title {
     $CompositeWidget->{RefInfoDummies}->{Title}{'-width'} = 0;
 
     # display title
-    $CompositeWidget->{RefInfoDummies}->{Title}{IdTitre}
-      = $CompositeWidget->createText(
+    $CompositeWidget->{RefInfoDummies}->{Title}{IdTitre} = $CompositeWidget->createText(
       $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrex},
       $CompositeWidget->{RefInfoDummies}->{Title}{Ctitrey},
       -text   => $Title,
       -width  => $CompositeWidget->{RefInfoDummies}->{Title}{'-width'},
       -anchor => 'nw',
 
-      );
+    );
   }
 
   $CompositeWidget->itemconfigure(
@@ -259,8 +201,7 @@ sub _ViewData {
     + $CompositeWidget->{RefInfoDummies}->{Canvas}{HeightEmptySpace};
 
   $CompositeWidget->{RefInfoDummies}->{Pie}{x2}
-    = $CompositeWidget->{RefInfoDummies}->{Pie}{x1}
-    + $CompositeWidget->{RefInfoDummies}->{Pie}{Width};
+    = $CompositeWidget->{RefInfoDummies}->{Pie}{x1} + $CompositeWidget->{RefInfoDummies}->{Pie}{Width};
 
   $CompositeWidget->{RefInfoDummies}->{Pie}{y2}
     = $CompositeWidget->{RefInfoDummies}->{Canvas}{Height}
@@ -269,9 +210,7 @@ sub _ViewData {
 
   # Calculate the number of degrees for value = 1
   my $Somme = 0;
-  foreach my $data (
-    @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[1] } )
-  {
+  foreach my $data ( @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[1] } ) {
     $Somme += $data;
   }
   $CompositeWidget->{RefInfoDummies}->{Pie}{DegreeOneValue} = 360 / $Somme;
@@ -280,13 +219,9 @@ sub _ViewData {
   my ( $degrees, $start ) = ( 0, $CompositeWidget->cget( -startangle ) );
   my $IndiceColor = 0;
   my $IndexLegend = 0;
-  for
-    my $Indice ( 0 .. $CompositeWidget->{RefInfoDummies}->{Data}{NbrSlice} - 1 )
-  {
-    my $Value
-      = $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[1]->[$Indice];
-    $degrees
-      = $CompositeWidget->{RefInfoDummies}->{Pie}{DegreeOneValue} * $Value;
+  for my $Indice ( 0 .. $CompositeWidget->{RefInfoDummies}->{Data}{NbrSlice} - 1 ) {
+    my $Value = $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[1]->[$Indice];
+    $degrees = $CompositeWidget->{RefInfoDummies}->{Pie}{DegreeOneValue} * $Value;
 
     my $Color = $legendmarkercolors->[$IndiceColor];
     unless ( defined $Color ) {
@@ -335,8 +270,7 @@ sub _CheckHeightPie {
     $CompositeWidget->{RefInfoDummies}->{Canvas}{Height}
       += $CompositeWidget->{RefInfoDummies}->{Legend}{Height};
 
-    $CompositeWidget->configure(
-      -height => $CompositeWidget->{RefInfoDummies}->{Canvas}{Height} );
+    $CompositeWidget->configure( -height => $CompositeWidget->{RefInfoDummies}->{Canvas}{Height} );
   }
 
   return;
@@ -349,13 +283,10 @@ SETLEGEND:
 
   # One legend width
   $CompositeWidget->{RefInfoDummies}->{Legend}{LengthOneLegend}
-    = +$CompositeWidget->{RefInfoDummies}
-    ->{Legend}{SpaceBeforeCube}    # Espace entre chaque légende
-    + $CompositeWidget->{RefInfoDummies}->{Legend}{WCube}    # Cube (largeur)
-    + $CompositeWidget->{RefInfoDummies}
-    ->{Legend}{SpaceAfterCube}                               # Espace apres cube
-    + $CompositeWidget->{RefInfoDummies}
-    ->{Legend}{WidthText}    # longueur du texte de la légende
+    = +$CompositeWidget->{RefInfoDummies}->{Legend}{SpaceBeforeCube}    # Espace entre chaque légende
+    + $CompositeWidget->{RefInfoDummies}->{Legend}{WCube}               # Cube (largeur)
+    + $CompositeWidget->{RefInfoDummies}->{Legend}{SpaceAfterCube}      # Espace apres cube
+    + $CompositeWidget->{RefInfoDummies}->{Legend}{WidthText}           # longueur du texte de la légende
     ;
 
   # Number of legends per line
@@ -372,7 +303,7 @@ SETLEGEND:
     = scalar @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[0] };
 
 =for NumberLines:
-  We calculate the number of lines set for the legend chart.
+  We calculate the number of lines set for the legend graph.
   If wa can set 11 legends per line, then for 3 legend, we will need one line
   and for 12 legends, we will need 2 lines
   If NbrLeg / NbrPerLine = integer => get number of lines
@@ -393,11 +324,10 @@ SETLEGEND:
   }
 
   # Total Height of Legend
-  $CompositeWidget->{RefInfoDummies}->{Legend}{Height}
-    = $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLine}
+  $CompositeWidget->{RefInfoDummies}->{Legend}{Height} = $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLine}
     * $CompositeWidget->{RefInfoDummies}->{Legend}{HLine};
 
-  # Get number legend text max per line to reajust our chart
+  # Get number legend text max per line to reajust our graph
   $CompositeWidget->{RefInfoDummies}->{Legend}{CurrentNbrPerLine}
     = $CompositeWidget->{RefInfoDummies}->{Legend}{NbrPerLine};
   if ( $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLegend}
@@ -409,11 +339,10 @@ SETLEGEND:
   }
 
   # Get the biggest length of legend text
-  my @LengthLegend = map { length; }
-    @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[0] };
+  my @LengthLegend = map { length; } @{ $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[0] };
   my $BiggestLegend = _MaxArray( \@LengthLegend );
 
-# 100 pixel =>  13 characters, 1 pixel =>  0.13 pixels then 1 character = 7.69 pixels
+  # 100 pixel =>  13 characters, 1 pixel =>  0.13 pixels then 1 character = 7.69 pixels
   $CompositeWidget->{RefInfoDummies}->{Legend}{WidthOneCaracter} = 7.69;
 
   # Max pixel width for a legend text for us
@@ -422,13 +351,12 @@ SETLEGEND:
       / $CompositeWidget->{RefInfoDummies}->{Legend}{WidthOneCaracter} );
 
   # We have free space
-  my $Diff = $CompositeWidget->{RefInfoDummies}->{Legend}{LengthTextMax}
-    - $BiggestLegend;
+  my $Diff = $CompositeWidget->{RefInfoDummies}->{Legend}{LengthTextMax} - $BiggestLegend;
 
   # Get new size width for a legend text with one pixel security
   if ( $Diff > 1 ) {
-    $CompositeWidget->{RefInfoDummies}->{Legend}{WidthText} -= ( $Diff - 1 )
-      * $CompositeWidget->{RefInfoDummies}->{Legend}{WidthOneCaracter};
+    $CompositeWidget->{RefInfoDummies}->{Legend}{WidthText}
+      -= ( $Diff - 1 ) * $CompositeWidget->{RefInfoDummies}->{Legend}{WidthOneCaracter};
     goto SETLEGEND;
   }
 
@@ -448,9 +376,7 @@ sub _ViewLegend {
   # Balloon
   my %MsgBalloon;
 
-  for my $NumberLine (
-    0 .. $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLine} )
-  {
+  for my $NumberLine ( 0 .. $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLine} ) {
     my $x1Cube = $CompositeWidget->{RefInfoDummies}->{Canvas}{WidthEmptySpace}
       + $CompositeWidget->{RefInfoDummies}->{Legend}{SpaceBeforeCube};
 
@@ -459,28 +385,22 @@ sub _ViewLegend {
       + $CompositeWidget->{RefInfoDummies}->{Canvas}{HeightEmptySpace}
       + ( $NumberLine * $CompositeWidget->{RefInfoDummies}->{Legend}{HLine} );
 
-    my $x2Cube = $x1Cube + $CompositeWidget->{RefInfoDummies}->{Legend}{WCube};
-    my $y2Cube = $y1Cube - $CompositeWidget->{RefInfoDummies}->{Legend}{HCube};
-    my $xText
-      = $x2Cube + $CompositeWidget->{RefInfoDummies}->{Legend}{SpaceAfterCube};
+    my $x2Cube    = $x1Cube + $CompositeWidget->{RefInfoDummies}->{Legend}{WCube};
+    my $y2Cube    = $y1Cube - $CompositeWidget->{RefInfoDummies}->{Legend}{HCube};
+    my $xText     = $x2Cube + $CompositeWidget->{RefInfoDummies}->{Legend}{SpaceAfterCube};
     my $yText     = $y2Cube;
     my $MaxLength = $CompositeWidget->{RefInfoDummies}->{Legend}{LengthTextMax};
 
   LEGEND:
-    for my $NumberLegInLine (
-      0 .. $CompositeWidget->{RefInfoDummies}->{Legend}{NbrPerLine} - 1 )
-    {
+    for my $NumberLegInLine ( 0 .. $CompositeWidget->{RefInfoDummies}->{Legend}{NbrPerLine} - 1 ) {
       last LEGEND
-        unless (
-        defined $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[0]
-        ->[$IndexLegend] );
+        unless ( defined $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[0]->[$IndexLegend] );
       my $LineColor = $legendmarkercolors->[$IndexColor];
       unless ( defined $LineColor ) {
         $IndexColor = 0;
         $LineColor  = $legendmarkercolors->[$IndexColor];
       }
-      my $Tag
-        = $IndexLegend . $CompositeWidget->{RefInfoDummies}->{TAGS}{Legend};
+      my $Tag = $IndexLegend . $CompositeWidget->{RefInfoDummies}->{TAGS}{Legend};
 
       $CompositeWidget->createRectangle(
         $x1Cube, $y1Cube, $x2Cube, $y2Cube,
@@ -490,8 +410,7 @@ sub _ViewLegend {
       );
 
       # Cut legend text if too long
-      my $Legende = $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[0]
-        ->[$IndexLegend];
+      my $Legende   = $CompositeWidget->{RefInfoDummies}->{Data}{RefAllData}->[0]->[$IndexLegend];
       my $NewLegend = $Legende;
       if ( length $NewLegend > $MaxLength ) {
         $MaxLength -= 3;
@@ -521,13 +440,9 @@ sub _ViewLegend {
         $Tag,
         '<Enter>',
         sub {
-          my $OtherColor
-            = $CompositeWidget->{RefInfoDummies}->{Balloon}{ColorData}->[0];
-          if ( $OtherColor eq
-            $CompositeWidget->{RefInfoDummies}{Pie}{$PieTag}{color} )
-          {
-            $OtherColor
-              = $CompositeWidget->{RefInfoDummies}->{Balloon}{ColorData}->[1];
+          my $OtherColor = $CompositeWidget->{RefInfoDummies}->{Balloon}{ColorData}->[0];
+          if ( $OtherColor eq $CompositeWidget->{RefInfoDummies}{Pie}{$PieTag}{color} ) {
+            $OtherColor = $CompositeWidget->{RefInfoDummies}->{Balloon}{ColorData}->[1];
           }
           $CompositeWidget->itemconfigure( $PieTag, -fill => $OtherColor, );
         }
@@ -542,21 +457,18 @@ sub _ViewLegend {
         }
       );
 
-      $MsgBalloon{$Tag} = "$Legende - "
-        . $CompositeWidget->{RefInfoDummies}{Pie}{$PieTag}{percent};
-      $MsgBalloon{$PieTag} = "$Legende - "
-        . $CompositeWidget->{RefInfoDummies}{Pie}{$PieTag}{percent};
+      $MsgBalloon{$Tag}    = "$Legende - " . $CompositeWidget->{RefInfoDummies}{Pie}{$PieTag}{percent};
+      $MsgBalloon{$PieTag} = "$Legende - " . $CompositeWidget->{RefInfoDummies}{Pie}{$PieTag}{percent};
 
     }
   }
 
   #Balloon
   unless ( defined $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj} ) {
-    $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}
-      = $CompositeWidget->Balloon(
+    $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj} = $CompositeWidget->Balloon(
       -statusbar  => $CompositeWidget,
       -background => $CompositeWidget->{RefInfoDummies}->{Balloon}{Background},
-      );
+    );
 
     $CompositeWidget->{RefInfoDummies}->{Balloon}{Obj}->attach(
       $CompositeWidget,
@@ -574,15 +486,15 @@ __END__
 
 =head1 NAME
 
-Tk::ForDummies::Graph::Pie - Extension of Canvas widget to create a pie chart. 
+Tk::ForDummies::Graph::Pie - Extension of Canvas widget to create a pie graph. 
 
 =head1 DESCRIPTION
 
 Tk::ForDummies::Graph::Pie is an extension of the Canvas widget. It is an easy way to build an 
 interactive pie graph into your Perl Tk widget. The module is written entirely in Perl/Tk.
 
-When the mouse cursor passes over a pieslice or its entry in the legend, 
-the pieslice turn to a color (that you can change) and a balloon box display to help identify it. 
+When the mouse cursor passes over a pie slice or its entry in the legend, 
+the pie slice turn to a color (that you can change) and a balloon box display to help identify it. 
 
 You can use 3 methods to zoom (vertically, horizontally or both).
 
@@ -622,7 +534,7 @@ B<-yscrollincrement>
 
 =head1 WIDGET-SPECIFIC OPTIONS 
 
-Many options allow you to configure your chart as you want. 
+Many options allow you to configure your graph as you want. 
 The default configuration is already OK, but you can change it.
 
 =over 4
@@ -635,7 +547,7 @@ The default configuration is already OK, but you can change it.
 
 Title of your graph.
   
- -title => "My pie graph title",
+ -title => 'My pie graph title',
 
 Default : B<undef>
 
@@ -659,7 +571,7 @@ Default : B<center>
 
 Title color of your graph.
   
- -titlecolor => "red",
+ -titlecolor => 'red',
 
 Default : B<black>
 
@@ -671,7 +583,7 @@ Default : B<black>
 
 Set the font for the title text. See also textfont option. 
   
- -titlefont => "Times 15 {normal}",
+ -titlefont => 'Times 15 {normal}',
 
 Default : B<{Times} 12 {bold}>
 
@@ -693,7 +605,7 @@ Default : B<40>
 
 =item Switch:	B<-linewidth>
 
-Set width of all lines slice pie inthe chart.
+Set width of all lines slice pie inthe graph.
  
  -linewidth => 10,
 
@@ -740,15 +652,40 @@ The Canvas method creates a widget object. This object supports the
 configure and cget methods described in Tk::options which can be used 
 to enquire and modify the options described above. 
 
+=head2 disabled_automatic_redraw
+
+=over 4
+
+=item I<$GraphDummies>->B<disabled_automatic_redraw>
+
+When the graph is created and the widget size changes, the graph is automatically re-created. Call this method to avoid resizing.
+
+  $GraphDummies->disabled_automatic_redraw;  
+
+=back
+
+=head2 enabled_automatic_redraw
+
+=over 4
+
+=item I<$GraphDummies>->B<enabled_automatic_redraw>
+
+Use this method to allow your graph to be recreated automatically when the widget size change. When the graph 
+is created for the first time, this method is called. 
+
+  $GraphDummies->enabled_automatic_redraw;  
+
+=back
+
 =head2 clearchart
 
 =over 4
 
 =item I<$PieGraphDummies>->B<clearchart>
 
-This method allows you to clear the chart. The canvas 
+This method allows you to clear the graph. The canvas 
 will not be destroy. It's possible to I<redraw> your 
-last chart using the I<redraw method>.
+last graph using the I<redraw method>.
 
 =back
 
@@ -796,7 +733,7 @@ Default : B<0>
 
  my @data = (
       [ '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th' ],
-      [ 1,     "--",     5,     6,     3,     1.5,   1,     3,     4 ],
+      [ 1,     '--',     5,     6,     3,     1.5,   1,     3,     4 ],
  );
  $PieGraphDummies->plot( \@data,
    -substitutionvalue => '12',
@@ -810,25 +747,25 @@ Default : B<0>
 
 =head2 redraw
 
-Redraw the chart. 
+Redraw the graph. 
 
-If you have used clearchart for any reason, it is possible to redraw the chart.
+If you have used clearchart for any reason, it is possible to redraw the graph.
 Tk::ForDummies::Graph::Pie supports the configure and cget methods described in the L<Tk::options> manpage.
 If you use configure method to change a widget specific option, the modification will not be display. 
-If the chart was already displayed and if you not resize the widget, call B<redraw> method to 
+If the graph was already displayed and if you not resize the widget, call B<redraw> method to 
 resolv the bug.
 
  ...
- $fenetre->Button(-text => "Change title", -command => sub { 
-   $PieGraphDummies->configure(-title => "other title"); 
+ $fenetre->Button(-text => 'Change title', -command => sub { 
+   $PieGraphDummies->configure(-title => 'other title'); 
    } 
  )->pack;
  ...
  # title will be changed but not displayed if you not resize the widget.
   
  ...
- $fenetre->Button(-text => "Change title", -command => sub { 
-   $PieGraphDummies->configure(-title => "other title"); 
+ $fenetre->Button(-text => 'Change title', -command => sub { 
+   $PieGraphDummies->configure(-title => 'other title'); 
    $PieGraphDummies->redraw; 
    } 
  )->pack;
@@ -837,7 +774,7 @@ resolv the bug.
 
 =head2 zoom
 
-zoom the chart (vertical and horizontal zoom).
+zoom the graph (vertical and horizontal zoom).
 
 $PieGraphDummies->zoom(I<$zoom>);
 
@@ -918,7 +855,7 @@ L<http://search.cpan.org/dist/Tk-ForDummies-Graph/>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Djibril Ousmanou, all rights reserved.
+Copyright 2010 Djibril Ousmanou, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

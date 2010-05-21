@@ -1,17 +1,28 @@
 Revision history for Tk-ForDummies-Graph
 
+1.11 21/05/2010 23:01:43
+  really removed -smoothline option from Tk::ForDummies::Graph::Lines.
+  Tk::ForDummies::Graph::Mixed added.
+  New display_values method added for Tk::ForDummies::Graph::Lines, Points, Splines, Areas and Mixed.
+  New enabled_automatic_redraw and disabled_automatic_redraw methods added for all Tk::ForDummies::Graph modules.
+  -dash option added to Tk::ForDummies::Graph::Lines. 
+  Modules code updated.
+  POD documentation updated.
+  Tk::ForDummies::Graph::FAQ updated : question about Scrolled and Tk::ForDummies::Graph added.
+  Screenshots added in examples.
+   
 1.10 18/07/2009 00:22:43
   Tk::ForDummies::Graph::Boxplots 
-  The same algorithm as Excel and type 7 R package is used for the quantile Q1 et Q3 calculation. 
-  new boxplot_information method added.
+    The same algorithm as Excel and type 7 R package is used for the quantile Q1 et Q3 calculation. 
+    new boxplot_information method added.
    
-  Warning fixed in all add_data method (Tk::ForDummies::Graph::*) when legend not defined.
+  Warning fixed in all add_data method (Tk::ForDummies::Graph::*) when legend is not defined.
   CPAN documentation updated.
 
 1.09 16/07/2009 20:26:56
   The calcul of quantile (Q1, Q3) was wrong for impair numbers of data values
-  in Tk::ForDummies::Graph::Boxplots. The bug is fix now and the calcul 
-  is the same as in Excel, and in R language it is the equivalent of quantile type 7
+  in Tk::ForDummies::Graph::Boxplots. The bug is now fixed and the calcul 
+  is the same as in Excel, and in R language it is the equivalent of quantile type 7.
 
 
 1.08 07/07/2009 21:45:08
@@ -20,11 +31,11 @@ Revision history for Tk-ForDummies-Graph
   New option -spline, the curve crosses by all points.
 
 1.07 13/05/2009
-  New options -titleposition, -xvalueview and -yvalueview
+  New options -titleposition, -xvalueview and -yvalueview.
   
 1.06 13/04/2009 16:54:30
-  fix bugs in Tk-ForDummies-Graph modules (legend, ...)
-  updated Tk::ForDummies::Graph::Boxplots
+  fix bugs in Tk-ForDummies-Graph modules (legend, ...).
+  Tk::ForDummies::Graph::Boxplots updated.
   
 1.05    11/04/2009 01:00:22 
   Tk::ForDummies::Graph::Splines added.
