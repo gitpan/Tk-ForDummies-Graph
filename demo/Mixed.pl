@@ -3,7 +3,6 @@ use strict;
 use warnings;
 use Tk;
 use Tk::ForDummies::Graph::Mixed;
-use Tk::Pane;
 
 my $mw = new MainWindow(
   -title      => 'Tk::ForDummies::Graph::Mixed',

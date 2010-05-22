@@ -17,28 +17,28 @@ name: Tk-ForDummies-Graph
 provides:
   Tk::ForDummies::Graph:
     file: lib/Tk/ForDummies/Graph.pm
-    version: 1.11
+    version: 1.12
   Tk::ForDummies::Graph::Areas:
     file: lib/Tk/ForDummies/Graph/Areas.pm
-    version: 1.07
+    version: 1.08
   Tk::ForDummies::Graph::Bars:
     file: lib/Tk/ForDummies/Graph/Bars.pm
-    version: 1.08
+    version: 1.09
   Tk::ForDummies::Graph::Boxplots:
     file: lib/Tk/ForDummies/Graph/Boxplots.pm
     version: 1.05
   Tk::ForDummies::Graph::Lines:
     file: lib/Tk/ForDummies/Graph/Lines.pm
-    version: 1.09
+    version: 1.10
   Tk::ForDummies::Graph::Mixed:
     file: lib/Tk/ForDummies/Graph/Mixed.pm
-    version: 1.00
+    version: 1.02
   Tk::ForDummies::Graph::Pie:
     file: lib/Tk/ForDummies/Graph/Pie.pm
     version: 1.06
   Tk::ForDummies::Graph::Utils:
     file: lib/Tk/ForDummies/Graph/Utils.pm
-    version: 1.05
+    version: 1.07
 resources:
   license: http://dev.perl.org/licenses/
-version: 1.11
+version: 1.12

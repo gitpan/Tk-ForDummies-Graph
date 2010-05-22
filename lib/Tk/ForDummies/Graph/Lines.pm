@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 17/05/2010 15:26:57
+# Update    : 22/05/2010 19:11:54
 # AIM       : Create line graph
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.09';
+$VERSION = '1.10';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -406,6 +406,7 @@ sub _ViewLegend {
   # Display legend
   my $IndexColor  = 0;
   my $IndexLegend = 0;
+  my $IndexMarker = 0;
   $CompositeWidget->{RefInfoDummies}->{Legend}{GetIdLeg} = {};
 
   for my $NumberLine ( 0 .. $CompositeWidget->{RefInfoDummies}->{Legend}{NbrLine} - 1 ) {
@@ -447,12 +448,44 @@ sub _ViewLegend {
       }
 
       my $Tag = ( $IndexLegend + 1 ) . $CompositeWidget->{RefInfoDummies}->{TAGS}{Legend};
-      $CompositeWidget->createRectangle(
-        $x1Cube, $y1Cube, $x2Cube, $y2Cube,
-        -fill    => $LineColor,
-        -outline => $LineColor,
-        -tags    => $Tag,
-      );
+
+      if ( $CompositeWidget->cget( -pointline ) == 1 ) {
+        my $markersize = $CompositeWidget->cget( -markersize );
+        my $markers    = $CompositeWidget->cget( -markers );
+        my $NumMarker  = $markers->[$IndexMarker];
+        unless ( defined $NumMarker ) {
+          $IndexMarker = 0;
+          $NumMarker   = $markers->[$IndexMarker];
+        }
+        my $RefType = $CompositeWidget->_GetMarkerType($NumMarker);
+        my %Option;
+        if ( $RefType->[1] == 1 ) {
+          $Option{-fill} = $LineColor;
+        }
+        if ( $NumMarker =~ m{^[125678]$} ) {
+          $Option{-outline} = $LineColor;
+        }
+        my $x = $x1Cube + ( ( $x2Cube - $x1Cube ) / 2 );
+        my $y = $y1Cube + ( ( $y2Cube - $y1Cube ) / 2 );
+        $Option{-tags} = $Tag;
+        $CompositeWidget->_CreateType(
+          x      => $x,
+          y      => $y,
+          pixel  => 10,
+          type   => $RefType->[0],
+          option => \%Option,
+        );
+        $IndexMarker++;
+      }
+      else {
+        $CompositeWidget->createRectangle(
+          $x1Cube, $y1Cube, $x2Cube, $y2Cube,
+          -fill    => $LineColor,
+          -outline => $LineColor,
+          -tags    => $Tag,
+        );
+
+      }
 
       my $Id = $CompositeWidget->createText(
         $xText, $yText,

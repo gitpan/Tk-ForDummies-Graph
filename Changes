@@ -1,5 +1,11 @@
 Revision history for Tk-ForDummies-Graph
 
+1.12 22/05/2010 19:19:14
+  Bugs has been fixed in Tk::ForDummies::Graph::Mixed.
+  Bugs has been fixed in points marker legend.
+  option  -outlinearea and -outlinebar has been added in Tk::ForDummies::Graph::Mixed, Tk::ForDummies::Graph::Areas and Tk::ForDummies::Graph::Bars.
+  Documentation updated.
+
 1.11 21/05/2010 23:01:43
   really removed -smoothline option from Tk::ForDummies::Graph::Lines.
   Tk::ForDummies::Graph::Mixed added.

@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 17/05/2010 15:26:57
+# Update    : 22/05/2010 19:11:16
 # AIM       : Create bars graph
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.08';
+$VERSION = '1.09';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -112,6 +112,7 @@ sub Populate {
     -cumulate   => [ 'PASSIVE', 'Cumulate',   'Cumulate',   0 ],
     -spacingbar => [ 'PASSIVE', 'Spacingbar', 'SpacingBar', 1 ],
     -showvalues => [ 'PASSIVE', 'Showvalues', 'ShowValues', 0 ],
+    -outlinebar => [ 'PASSIVE', 'Outlinebar', 'OutlineBar', 'black' ],
   );
 
   $CompositeWidget->Delegates( DEFAULT => $CompositeWidget, );
@@ -724,6 +725,7 @@ sub _ViewData {
   my $cumulate           = $CompositeWidget->cget( -cumulate );
   my $spacingbar         = $CompositeWidget->cget( -spacingbar );
   my $showvalues         = $CompositeWidget->cget( -showvalues );
+  my $outlinebar         = $CompositeWidget->cget( -outlinebar );
 
   # number of value for x axis
   $CompositeWidget->{RefInfoDummies}->{Data}{xtickNumber}
@@ -817,9 +819,10 @@ sub _ViewData {
 
       $CompositeWidget->createRectangle(
         $x0, $y0, $x, $y,
-        -fill  => $LineColor,
-        -tags  => [ $tag, $tag2, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
-        -width => $CompositeWidget->cget( -linewidth ),
+        -fill    => $LineColor,
+        -tags    => [ $tag, $tag2, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+        -width   => $CompositeWidget->cget( -linewidth ),
+        -outline => $outlinebar,
       );
       if ( $showvalues == 1 ) {
         $CompositeWidget->createText(
@@ -1059,6 +1062,18 @@ Set this to 1 to display remove space between each bar.
  -spacingbar => 0, # 0 or 1
 
 Default : B<1>
+
+=item Name:	B<Outlinebar>
+
+=item Class:	B<OutlineBar>
+
+=item Switch:	B<-outlinebar>
+
+Change color of border bars.
+
+  -outlinebar => 'blue',
+
+Default : B<'black'>
 
 =back
 

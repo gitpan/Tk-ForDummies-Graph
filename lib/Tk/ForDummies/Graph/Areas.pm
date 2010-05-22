@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 21/05/2010 23:05:08
+# Update    : 22/05/2010 19:11:07
 # AIM       : Create area graph
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.07';
+$VERSION = '1.08';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -110,6 +110,7 @@ sub Populate {
     -colordata =>
       [ 'PASSIVE', 'Colordata', 'ColorData', $CompositeWidget->{RefInfoDummies}->{Legend}{Colors} ],
     -viewsection => [ 'PASSIVE', 'Viewsection', 'ViewSection', 1 ],
+    -outlinearea => [ 'PASSIVE', 'Outlinearea', 'OutlineArea', 'black' ],
   );
 
   $CompositeWidget->Delegates( DEFAULT => $CompositeWidget, );
@@ -181,6 +182,7 @@ sub _Balloon {
           -width => $CompositeWidget->cget( -linewidth )
             + $CompositeWidget->{RefInfoDummies}->{Balloon}{MorePixelSelected},
         );
+
       }
     );
 
@@ -197,6 +199,7 @@ sub _Balloon {
         # Allow dash line to display
         $CompositeWidget->itemconfigure( $CompositeWidget->{RefInfoDummies}->{TAGS}{DashLines},
           -fill => 'black', );
+
       }
     );
   }
@@ -691,6 +694,9 @@ sub _ViewData {
 
   my $legendmarkercolors = $CompositeWidget->cget( -colordata );
   my $viewsection        = $CompositeWidget->cget( -viewsection );
+  my $outlinearea        = $CompositeWidget->cget( -outlinearea );
+
+  my $tag_area = $CompositeWidget->{RefInfoDummies}->{TAGS}{Area};
 
   # number of value for x axis
   $CompositeWidget->{RefInfoDummies}->{Data}{xtickNumber}
@@ -754,13 +760,20 @@ sub _ViewData {
     $CompositeWidget->createPolygon(
       @PointsData,
       -fill    => $LineColor,
-      -tags    => [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+      -tags    => [ $tag_area, $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
       -width   => $CompositeWidget->cget( -linewidth ),
-      -outline => 'black',
+      -outline => $outlinearea,
     );
 
     # display Dash line
     if ( defined $viewsection and $viewsection == 1 ) {
+
+      # remove first and last points
+      for ( 1 .. 2 ) {
+        shift(@DashPointsxLines);
+        pop(@DashPointsxLines);
+      }
+
       for ( my $i = 0; $i < scalar(@DashPointsxLines); $i++ ) {
         my $IndexX1 = $i;
         my $IndexY1 = $i + 1;
@@ -770,8 +783,9 @@ sub _ViewData {
           $DashPointsxLines[$IndexY1],
           $DashPointsxLines[$IndexX2],
           $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0},
-          -dash => '.',
-          -tags => [
+          -dash  => '.',
+          -width => $CompositeWidget->cget( -linewidth ),
+          -tags  => [
             $tag,
             $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData},
             $CompositeWidget->{RefInfoDummies}->{TAGS}{DashLines},
@@ -947,11 +961,23 @@ B<-yscrollincrement>
 
 =item Switch:	B<-viewsection>
 
-If set to true value, We will see area sections separate by dash lines.
+If set to true value, we will see area sections separate by dash lines.
 
  -viewsection => 0, # 0 or 1
 
 Default : B<1>
+
+=item Name:	B<Outlinearea>
+
+=item Class:	B<OutlineArea>
+
+=item Switch:	B<-outlinearea>
+
+Change color of border areas.
+
+  -outlinearea => 'blue',
+
+Default : B<'black'>
 
 =back
 

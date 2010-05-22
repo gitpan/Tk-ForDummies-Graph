@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph::Utils;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 21/05/2010 23:11:29
+# Update    : 22/05/2010 19:11:40
 # AIM       : Private functions and public shared methods
 #             between Tk::ForDummies::Graph modules
 #==================================================================
@@ -12,7 +12,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = '1.05';
+$VERSION = '1.07';
 
 use Exporter;
 use POSIX qw / floor /;
@@ -22,7 +22,7 @@ my @ModuleToExport = qw (
   zoom        zoomx      zoomy       clearchart
   _Quantile   _moy       _NonOutlier _GetControlPoints
   enabled_automatic_redraw           disabled_automatic_redraw
-  _delete_array_doublon redraw       add_data     
+  _delete_array_doublon redraw       add_data
   delete_balloon                     set_balloon
 );
 my @ModulesDisplay = qw/ display_values /;
@@ -441,7 +441,7 @@ __END__
 
 =head1 NAME
 
-Tk::ForDummies::Graph::Utils - private Tk::ForDummies::Graph methods
+Tk::ForDummies::Graph::Utils - Private Tk::ForDummies::Graph methods
 
 =head1 SYNOPSIS
 

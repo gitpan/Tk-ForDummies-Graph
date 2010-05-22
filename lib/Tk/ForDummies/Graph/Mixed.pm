@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 21/05/2010 23:05:31
+# Update    : 22/05/2010 19:12:35
 # AIM       : Create Mixed graph
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.00';
+$VERSION = '1.02';
 
 use base qw/Tk::Derived Tk::Canvas/;
 use Tk::Balloon;
@@ -125,6 +125,8 @@ sub Populate {
     # type mixed
     -typemixed   => [ 'PASSIVE', 'Typemixed',   'TypeMixed',   undef ],
     -defaulttype => [ 'PASSIVE', 'Defaulttype', 'DefaulTtype', 'lines' ],
+    -outlinearea => [ 'PASSIVE', 'Outlinearea', 'OutlineArea', 'black' ],
+    -outlinebar  => [ 'PASSIVE', 'Outlinebar',  'OutlineBar',  'black' ],
   );
 
   $CompositeWidget->Delegates( DEFAULT => $CompositeWidget, );
@@ -191,6 +193,10 @@ sub _Balloon {
           $OtherColor = $CompositeWidget->{RefInfoDummies}->{Balloon}{ColorData}->[1];
         }
         $CompositeWidget->itemconfigure( $MixedTag, -fill => $OtherColor, );
+        my $ElementType = $CompositeWidget->type($MixedTag);
+        if ( $ElementType =~ m{^polygon|oval|arc$} ) {
+          $CompositeWidget->itemconfigure( $MixedTag, -outline => $OtherColor, );
+        }
       }
     );
 
@@ -201,9 +207,26 @@ sub _Balloon {
         $CompositeWidget->itemconfigure( $MixedTag,
           -fill => $CompositeWidget->{RefInfoDummies}{Mixed}{$MixedTag}{color}, );
 
+        my $ElementType = $CompositeWidget->type($MixedTag);
+        if ( $ElementType =~ m{^polygon|oval|arc$} ) {
+          $CompositeWidget->itemconfigure( $MixedTag,
+            -outline => $CompositeWidget->{RefInfoDummies}{Mixed}{$MixedTag}{color}, );
+        }
+
         # Allow value bar to display
         $CompositeWidget->itemconfigure( $CompositeWidget->{RefInfoDummies}->{TAGS}{BarValues},
           -fill => 'black', );
+
+        # area outline
+        my $outlinearea = $CompositeWidget->cget( -outlinearea );
+        $CompositeWidget->itemconfigure( $CompositeWidget->{RefInfoDummies}->{TAGS}{Area},
+          -outline => $outlinearea, );
+
+        # area outlinebar
+        my $outlinebar = $CompositeWidget->cget( -outlinebar );
+        $CompositeWidget->itemconfigure( $CompositeWidget->{RefInfoDummies}->{TAGS}{Bar},
+          -outline => $outlinebar, );
+
       }
     );
   }
@@ -415,6 +438,7 @@ sub _ViewLegend {
   # Display legend
   my $IndexColor  = 0;
   my $IndexLegend = 0;
+  my $IndexMarker = 0;
 
   # initialisation of balloon message
   #$CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon} = {};
@@ -457,12 +481,61 @@ sub _ViewLegend {
       }
 
       my $Tag = ( $IndexLegend + 1 ) . $CompositeWidget->{RefInfoDummies}->{TAGS}{Legend};
-      $CompositeWidget->createRectangle(
-        $x1Cube, $y1Cube, $x2Cube, $y2Cube,
-        -fill    => $LineColor,
-        -outline => $LineColor,
-        -tags    => $Tag,
-      );
+
+      # Marker type to display
+      my $defaulttype = $CompositeWidget->cget( -defaulttype );
+      my $MarkerType = $CompositeWidget->cget( -typemixed )->[$IndexLegend] || $defaulttype;
+
+      if ( $MarkerType eq 'lines' or $MarkerType eq 'dashlines' ) {
+        my $y1       = $y2Cube - ( ( $y2Cube - $y1Cube ) / 2 );
+        my $y2       = $y1;
+        my $dashline = $CompositeWidget->cget( -dashline );
+        $dashline = '.' if ( $MarkerType eq 'dashlines' );
+
+        $CompositeWidget->createLine(
+          $x1Cube, $y1, $x2Cube, $y2,
+          -fill  => $LineColor,
+          -width => 4,
+          -dash  => $dashline,
+          -tags  => $Tag,
+        );
+      }
+      elsif ( $MarkerType eq 'points' ) {
+        my $markersize = $CompositeWidget->cget( -markersize );
+        my $markers    = $CompositeWidget->cget( -markers );
+        my $NumMarker  = $markers->[$IndexMarker];
+        unless ( defined $NumMarker ) {
+          $IndexMarker = 0;
+          $NumMarker   = $markers->[$IndexMarker];
+        }
+        my $RefType = $CompositeWidget->_GetMarkerType($NumMarker);
+        my %Option;
+        if ( $RefType->[1] == 1 ) {
+          $Option{-fill} = $LineColor;
+        }
+        if ( $NumMarker =~ m{^[125678]$} ) {
+          $Option{-outline} = $LineColor;
+        }
+        my $x = $x1Cube + ( ( $x2Cube - $x1Cube ) / 2 );
+        my $y = $y1Cube + ( ( $y2Cube - $y1Cube ) / 2 );
+        $Option{-tags} = $Tag;
+        $CompositeWidget->_CreateType(
+          x      => $x,
+          y      => $y,
+          pixel  => 10,
+          type   => $RefType->[0],
+          option => \%Option,
+        );
+        $IndexMarker++;
+      }
+      else {
+        $CompositeWidget->createRectangle(
+          $x1Cube, $y1Cube, $x2Cube, $y2Cube,
+          -fill    => $LineColor,
+          -outline => $LineColor,
+          -tags    => $Tag,
+        );
+      }
 
       my $Id = $CompositeWidget->createText(
         $xText, $yText,
@@ -794,12 +867,12 @@ sub _ViewDataAreas {
 
   my $legendmarkercolors = $CompositeWidget->cget( -colordata );
   my $viewsection        = $CompositeWidget->cget( -viewsection );
-
-  my $IndexColor = $CompositeWidget->{Index}{Color}{Line};
-  my $LineColor  = $legendmarkercolors->[$IndexColor];
-  my $NumberData = 1;
-  my $tag        = $IdData . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
-  my $tag2       = $IdData . "_$NumberData" . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
+  my $outlinearea        = $CompositeWidget->cget( -outlinearea );
+  my $IndexColor         = $CompositeWidget->{Index}{Color}{Line};
+  my $LineColor          = $legendmarkercolors->[$IndexColor];
+  my $NumberData         = 1;
+  my $tag                = $IdData . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
+  my $tag2               = $IdData . "_$NumberData" . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
   $CompositeWidget->{RefInfoDummies}->{Legend}{MsgBalloon}->{$tag2}
     = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend}->[ $IdData - 1 ];
   my $tag_area = $CompositeWidget->{RefInfoDummies}->{TAGS}{Area};
@@ -849,7 +922,7 @@ sub _ViewDataAreas {
     -fill    => $LineColor,
     -tags    => [ $tag, $tag2, $tag_area ],
     -width   => $CompositeWidget->cget( -linewidth ),
-    -outline => 'black',
+    -outline => $outlinearea,
   );
 
   # display Dash line
@@ -893,7 +966,7 @@ sub _ViewDataPoints {
   my $IndexMarker        = $CompositeWidget->{Index}{Marker}{id};
   my $LineColor          = $legendmarkercolors->[$IndexColor];
 
-  my $NumMarker  = $markers->[$IndexMarker];
+  my $NumMarker  = $markers->[$IndexMarker] || $markers->[0];
   my $NumberData = 1;
   my $tag        = $IdData . $CompositeWidget->{RefInfoDummies}->{TAGS}{Mixed};
   my $tag_point  = $CompositeWidget->{RefInfoDummies}->{TAGS}{Point};
@@ -963,10 +1036,12 @@ sub _ViewDataBars {
   my $cumulate           = $CompositeWidget->cget( -cumulate );
   my $spacingbar         = $CompositeWidget->cget( -spacingbar );
   my $showvalues         = $CompositeWidget->cget( -showvalues );
-  my $IndexColor         = $CompositeWidget->{Index}{Color}{Line};
-  my $LineColor          = $legendmarkercolors->[$IndexColor];
-  my $NumberData         = 1;                                                 # Number of data
-  my $tag_bar            = $CompositeWidget->{RefInfoDummies}->{TAGS}{Bar};
+  my $outlinebar         = $CompositeWidget->cget( -outlinebar );
+
+  my $IndexColor = $CompositeWidget->{Index}{Color}{Line};
+  my $LineColor  = $legendmarkercolors->[$IndexColor];
+  my $NumberData = 1;                                                 # Number of data
+  my $tag_bar    = $CompositeWidget->{RefInfoDummies}->{TAGS}{Bar};
 
   my $WidthBar = $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick}
     / $CompositeWidget->{RefInfoDummies}->{Data}{NumberRealDataBars};
@@ -1036,9 +1111,10 @@ sub _ViewDataBars {
 
     $CompositeWidget->createRectangle(
       $x0, $y0, $x, $y,
-      -fill  => $LineColor,
-      -tags  => [ $tag, $tag2, $tag_bar ],
-      -width => $CompositeWidget->cget( -linewidth ),
+      -fill    => $LineColor,
+      -tags    => [ $tag, $tag2, $tag_bar ],
+      -width   => $CompositeWidget->cget( -linewidth ),
+      -outline => $outlinebar,
     );
     if ( $showvalues == 1 ) {
       $CompositeWidget->createText(
@@ -1150,11 +1226,11 @@ sub display_order {
   }
 
   my %TAG = (
-    areas       => $CompositeWidget->{RefInfoDummies}->{TAGS}{Area},
-    bars        => $CompositeWidget->{RefInfoDummies}->{TAGS}{Bar},
-    lines       => $CompositeWidget->{RefInfoDummies}->{TAGS}{Line},
+    areas     => $CompositeWidget->{RefInfoDummies}->{TAGS}{Area},
+    bars      => $CompositeWidget->{RefInfoDummies}->{TAGS}{Bar},
+    lines     => $CompositeWidget->{RefInfoDummies}->{TAGS}{Line},
     dashlines => $CompositeWidget->{RefInfoDummies}->{TAGS}{PointLine},
-    points      => $CompositeWidget->{RefInfoDummies}->{TAGS}{Point},
+    points    => $CompositeWidget->{RefInfoDummies}->{TAGS}{Point},
   );
 
   # Get order from user and store it
@@ -1165,7 +1241,11 @@ sub display_order {
   # tag pile order
   for ( my $i = 0; $i <= $#order; $i++ ) {
     for ( my $next = $i + 1; $next <= $#order; $next++ ) {
-      $CompositeWidget->raise( $TAG{ $order[$next] }, $TAG{ $order[$i] } );
+      my $test_tag_next = $CompositeWidget->find( 'withtag', $TAG{ $order[$next] } );
+      my $test_tag_i    = $CompositeWidget->find( 'withtag', $TAG{ $order[$i] } );
+      if ( $test_tag_next and $test_tag_i ) {
+        $CompositeWidget->raise( $TAG{ $order[$next] }, $TAG{ $order[$i] } );
+      }
     }
   }
 
@@ -1194,6 +1274,11 @@ sub plot {
         $CompositeWidget->{RefInfoDummies}->{Data}{NumberRealDataBars}++;
       }
     }
+  }
+
+  # USe -defaulttype to calculated number of bar data
+  elsif ( $CompositeWidget->cget( -defaulttype ) eq 'bars' ) {
+    $CompositeWidget->{RefInfoDummies}->{Data}{NumberRealDataBars} = scalar @{$RefData} - 1;
   }
 
   unless ( defined $RefData ) {
@@ -1970,6 +2055,18 @@ Set this to 1 to display remove space between each bar.
 
 Default : B<1>
 
+=item Name:	B<Outlinebar>
+
+=item Class:	B<OutlineBar>
+
+=item Switch:	B<-outlinebar>
+
+Change color of border bars.
+
+  -outlinebar => 'blue',
+
+Default : B<'black'>
+
 =back
 
 =head1 WIDGET-SPECIFIC OPTIONS like Tk::ForDummies::Graph::Areas
@@ -1982,11 +2079,23 @@ Default : B<1>
 
 =item Switch:	B<-viewsection>
 
-If set to true value, We will see area sections separate by dash lines.
+If set to true value, we will see area sections separate by dash lines.
 
  -viewsection => 0, # 0 or 1
 
 Default : B<1>
+
+=item Name:	B<Outlinearea>
+
+=item Class:	B<OutlineArea>
+
+=item Switch:	B<-outlinearea>
+
+Change color of border area.
+
+  -outlinearea => 'blue',
+
+Default : B<'black'>
 
 =back
 
