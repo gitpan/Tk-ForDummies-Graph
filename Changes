@@ -1,9 +1,17 @@
 Revision history for Tk-ForDummies-Graph
 
+1.13 19/06/2010 22:22:23
+  Tk-ForDummies-Graph is now an extension of Tk::Canvas::GradientColor which allow you to 
+  to set a gradient background color in your graph. Then, you can use all methods of this module.
+  Bugs has been fixed : 
+    -Resizing the widget does not remove the items that have been added on the graph.
+    -The bug binding keys has been fixed.
+  -highlightthickness sets to 0 by default to remove border focus rectangle.
+
 1.12 22/05/2010 19:19:14
   Bugs has been fixed in Tk::ForDummies::Graph::Mixed.
   Bugs has been fixed in points marker legend.
-  option  -outlinearea and -outlinebar has been added in Tk::ForDummies::Graph::Mixed, Tk::ForDummies::Graph::Areas and Tk::ForDummies::Graph::Bars.
+  -outlinearea and -outlinebar options has been added in Tk::ForDummies::Graph::Mixed, Tk::ForDummies::Graph::Areas and Tk::ForDummies::Graph::Bars.
   Documentation updated.
 
 1.11 21/05/2010 23:01:43

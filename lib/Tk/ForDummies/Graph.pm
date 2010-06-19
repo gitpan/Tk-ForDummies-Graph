@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 22/05/2010 19:12:16
+# Update    : 04/06/2010 21:27:58
 # AIM       : Private functions for Dummies Graph modules
 #==================================================================
 use strict;
@@ -11,7 +11,7 @@ use warnings;
 use Carp;
 use Tk::ForDummies::Graph::Utils qw (:DUMMIES);
 use vars qw($VERSION);
-$VERSION = '1.12';
+$VERSION = '1.13';
 
 use Exporter;
 
@@ -126,33 +126,34 @@ sub _InitConfig {
       box       => 0,
     },
     'TAGS' => {
-      AllAXIS     => 'AllAXISTag',
-      yAxis       => 'yAxisTag',
-      xAxis       => 'xAxisTag',
-      'xAxis0'    => '0AxisTag',
-      BoxAxis     => 'BoxAxisTag',
-      xTick       => 'xTickTag',
-      yTick       => 'yTickTag',
-      AllTick     => 'AllTickTag',
-      'xValue0'   => 'xValue0Tag',
-      xValues     => 'xValuesTag',
-      yValues     => 'yValuesTag',
-      AllValues   => 'AllValuesTag',
-      TitleLegend => 'TitleLegendTag',
-      BoxLegend   => 'BoxLegendTag',
-      AllData     => 'AllDataTag',
-      AllPie      => 'AllPieTag',
-      Area        => '_AreaTag',
-      Pie         => '_PieTag',
-      PointLine   => '_PointLineTag',
-      Line        => '_LineTag',
-      Point       => '_PointTag',
-      Bar         => '_BarTag',
-      Mixed       => '_MixedTag',
-      Legend      => '_LegendTag',
-      DashLines   => '_DashLineTag',
-      BarValues   => '_BarValuesTag',
-      Boxplot     => '_BoxplotTag',
+      AllTagsDummiesGraph => '_AllTagsDummiesGraph',
+      AllAXIS             => '_AllAXISTag',
+      yAxis               => '_yAxisTag',
+      xAxis               => '_xAxisTag',
+      'xAxis0'            => '_0AxisTag',
+      BoxAxis             => '_BoxAxisTag',
+      xTick               => '_xTickTag',
+      yTick               => '_yTickTag',
+      AllTick             => '_AllTickTag',
+      'xValue0'           => '_xValue0Tag',
+      xValues             => '_xValuesTag',
+      yValues             => '_yValuesTag',
+      AllValues           => '_AllValuesTag',
+      TitleLegend         => '_TitleLegendTag',
+      BoxLegend           => '_BoxLegendTag',
+      AllData             => '_AllDataTag',
+      AllPie              => '_AllPieTag',
+      Area                => '_AreaTag',
+      Pie                 => '_PieTag',
+      PointLine           => '_PointLineTag',
+      Line                => '_LineTag',
+      Point               => '_PointTag',
+      Bar                 => '_BarTag',
+      Mixed               => '_MixedTag',
+      Legend              => '_LegendTag',
+      DashLines           => '_DashLineTag',
+      BarValues           => '_BarValuesTag',
+      Boxplot             => '_BoxplotTag',
     },
     'Title' => {
       Ctitrex  => undef,
@@ -201,6 +202,13 @@ sub _TreatParameters {
         . "-xvaluesregex => qr/My regex/;",
       1
     );
+    return;
+  }
+
+  my $gradient = $CompositeWidget->cget( -gradient );
+  if ( defined $gradient and ref($gradient) !~ m{^hash$}i ) {
+    $CompositeWidget->_error(
+      "'Can't set -gradient to `$gradient', " . "$gradient' is not a hash reference expression\n", 1 );
     return;
   }
 
@@ -583,7 +591,8 @@ sub _box {
     $CompositeWidget->{RefInfoDummies}->{Axis}{CyMax},
     -tags => [
       $CompositeWidget->{RefInfoDummies}->{TAGS}{BoxAxis},
-      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS}
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS},
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
     ],
   );
 
@@ -595,7 +604,8 @@ sub _box {
     $CompositeWidget->{RefInfoDummies}->{Axis}{CyMax},
     -tags => [
       $CompositeWidget->{RefInfoDummies}->{TAGS}{BoxAxis},
-      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS}
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS},
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
     ],
   );
 
@@ -648,7 +658,8 @@ sub _ytick {
       $Ytickx1, $Yticky1, $Ytickx2, $Yticky2,
       -tags => [
         $CompositeWidget->{RefInfoDummies}->{TAGS}{yTick},
-        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick}
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick},
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
       ],
     );
     $CompositeWidget->createText(
@@ -657,10 +668,10 @@ sub _ytick {
       -fill => $CompositeWidget->cget( -yvaluecolor ),
       -tags => [
         $CompositeWidget->{RefInfoDummies}->{TAGS}{yValues},
-        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllValues}
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllValues},
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
       ],
     );
-
   }
 
   # Display 0 value
@@ -672,7 +683,8 @@ sub _ytick {
       -text => 0,
       -tags => [
         $CompositeWidget->{RefInfoDummies}->{TAGS}{xValue0},
-        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllValues}
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllValues},
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
       ],
     );
   }
@@ -688,7 +700,8 @@ sub _ytick {
     -fill => $CompositeWidget->cget( -yvaluecolor ),
     -tags => [
       $CompositeWidget->{RefInfoDummies}->{TAGS}{yValues},
-      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllValues}
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllValues},
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
     ],
   );
 
@@ -702,7 +715,8 @@ sub _ytick {
       $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin} - $Space,
       -tags => [
         $CompositeWidget->{RefInfoDummies}->{TAGS}{yTick},
-        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick}
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick},
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
       ],
     );
   }
@@ -763,6 +777,7 @@ sub _title {
     -text   => $Title,
     -width  => $CompositeWidget->{RefInfoDummies}->{Title}{'-width'},
     -anchor => $anchor,
+    -tags   => [ $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
   );
   return if ( $anchor =~ m{^left|right$} );
 
@@ -794,7 +809,7 @@ sub _title {
       -text   => $Title,
       -width  => $CompositeWidget->{RefInfoDummies}->{Title}{'-width'},
       -anchor => 'nw',
-
+      -tags   => [ $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
     );
   }
 
@@ -840,6 +855,7 @@ sub _XLabelPosition {
     $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{CxlabelY},
     -text  => $xlabel,
     -width => $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width},
+    -tags  => [ $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
   );
 
   # get info ylabel xlabel
@@ -864,6 +880,7 @@ sub _XLabelPosition {
       -text   => $xlabel,
       -width  => 0,
       -anchor => 'nw',
+      -tags   => [ $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
     );
   }
 
@@ -903,6 +920,7 @@ sub _YLabelPosition {
     -font  => $CompositeWidget->cget( -ylabelfont ),
     -width => $CompositeWidget->{RefInfoDummies}->{Axis}{Yaxis}{ylabelWidth},
     -fill  => $CompositeWidget->cget( -ylabelcolor ),
+    -tags  => [ $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
   );
 
   # get info ylabel
@@ -924,6 +942,9 @@ sub _GraphForDummiesConstruction {
 
   $CompositeWidget->clearchart();
   $CompositeWidget->_TreatParameters();
+
+  # For background gradient color
+  $CompositeWidget->set_gradientcolor;
 
   # Pie graph
   if ( $CompositeWidget->class eq 'Pie' ) {
@@ -1056,6 +1077,8 @@ use Tk::ForDummies::Graph::B<ModuleName>;
 B<Tk::ForDummies::Graph> is a module to create and display graphs on a Tk widget. 
 The module is written entirely in Perl/Tk.
 
+You can set a background gradient color by using L<Tk::Canvas::GradientColor> methods.
+
 You can change the color, font of title, labels (x and y) of graphs.
 You can set an interactive legend. The axes can be automatically scaled or set by the code.
 
@@ -1092,7 +1115,7 @@ See the samples directory in the distribution, and read documentations for each 
 
 =head1 SEE ALSO
 
-See L<Tk::ForDummies::Graph::FAQ>, L<GD::Graph>, L<Tk::Graph>, L<Tk::LineGraph>, L<Tk::PlotDataset>, L<Chart::Plot::Canvas>.
+See L<Tk::ForDummies::Graph::FAQ>, L<Tk::Canvas::GradientColor>, L<GD::Graph>, L<Tk::Graph>, L<Tk::LineGraph>, L<Tk::PlotDataset>, L<Chart::Plot::Canvas>.
 
 =head1 AUTHOR
 

@@ -11,11 +11,12 @@ This is the Frequently Asked Questions list for Tk::ForDummies::Graph.
 
 =head2 How to scrolled Tk::ForDummies::Graph Widget ?
 
-Tk::ForDummies::Graph is an extension of Canvas widget but it is not possible to scrolled it like this :
+Tk::ForDummies::Graph is an extension of Canvas widget. That is an idea to scrolled your widget if you use 
+Tk::ForDummies::Graph::Lines :
 
-  my $LineGraph = $mw->Scrolled('Tk::ForDummies::Graph::Lines')->pack; #wrong
+  my $LineGraph = $mw->Scrolled('Lines')->pack;
 
-But the idea is to create your graph in a scrolled frame as Pane widget. That is an example.
+You can also use B<Scrollbar> method or use scrolled frame as Pane widget like this example :
 
   #!/usr/bin/perl
   use strict;

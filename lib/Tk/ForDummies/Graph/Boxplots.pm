@@ -7,14 +7,14 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 17/05/2010 15:26:57
+# Update    : 19/06/2010 22:47:22
 # AIM       : Create bars graph
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.05';
+$VERSION = '1.06';
 
-use base qw/Tk::Derived Tk::Canvas/;
+use base qw/Tk::Derived Tk::Canvas::GradientColor/;
 use Tk::Balloon;
 
 use Tk::ForDummies::Graph::Utils qw (:DUMMIES);
@@ -31,7 +31,14 @@ sub Populate {
 
   $CompositeWidget->SUPER::Populate($RefParameters);
 
-  $CompositeWidget->Advertise( 'canvas' => $CompositeWidget );
+  $CompositeWidget->Advertise( 'GradientColor' => $CompositeWidget );
+  $CompositeWidget->Advertise( 'canvas'        => $CompositeWidget->SUPER::Canvas );
+  $CompositeWidget->Advertise( 'Canvas'        => $CompositeWidget->SUPER::Canvas );
+
+  # remove highlightthickness if necessary
+  unless ( exists $RefParameters->{-highlightthickness} ) {
+    $CompositeWidget->configure( -highlightthickness => 0 );
+  }
 
   $CompositeWidget->ConfigSpecs(
     -title      => [ 'PASSIVE', 'Title',      'Title',      undef ],
@@ -115,6 +122,7 @@ sub Populate {
 
   # recreate graph after widget resize
   $CompositeWidget->enabled_automatic_redraw();
+  $CompositeWidget->disabled_gradientcolor();
 }
 
 sub _Balloon {
@@ -439,13 +447,17 @@ sub _ViewLegend {
       + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{xlabelHeight};
 
     $CompositeWidget->createText(
-      $xLegendTitle, $yLegendTitle,
+      $xLegendTitle,
+      $yLegendTitle,
       -text   => $LegendTitle,
       -anchor => 'nw',
       -font   => $titlefont,
       -fill   => $titlecolor,
       -width  => $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width},
-      -tags   => $CompositeWidget->{RefInfoDummies}->{TAGS}{TitleLegend},
+      -tags   => [
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{TitleLegend},
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+      ],
     );
   }
 
@@ -496,14 +508,14 @@ sub _ViewLegend {
         $x1Cube, $y1Cube, $x2Cube, $y2Cube,
         -fill    => $LineColor,
         -outline => $LineColor,
-        -tags    => $Tag,
+        -tags    => [ $Tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
       );
 
       my $Id = $CompositeWidget->createText(
         $xText, $yText,
         -text   => $NewLegend,
         -anchor => 'nw',
-        -tags   => $Tag,
+        -tags   => [ $Tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
       );
       if ($legendfont) {
         $CompositeWidget->itemconfigure( $Id, -font => $legendfont, );
@@ -546,8 +558,13 @@ sub _ViewLegend {
     $x2Box = $InfoLegendTitle[2] + 2;
   }
   my $y2Box = $y1Box + $CompositeWidget->{RefInfoDummies}->{Legend}{Height};
-  $CompositeWidget->createRectangle( $x1Box, $y1Box, $x2Box, $y2Box,
-    -tags => $CompositeWidget->{RefInfoDummies}->{TAGS}{BoxLegend}, );
+  $CompositeWidget->createRectangle(
+    $x1Box, $y1Box, $x2Box, $y2Box,
+    -tags => [
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{BoxLegend},
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+    ],
+  );
 
   return;
 }
@@ -607,7 +624,8 @@ sub _axis {
     $CompositeWidget->{RefInfoDummies}->{Axis}{CyMax},
     -tags => [
       $CompositeWidget->{RefInfoDummies}->{TAGS}{yAxis},
-      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS}
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS},
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
     ],
   );
 
@@ -626,7 +644,8 @@ sub _axis {
     $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin},
     -tags => [
       $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis},
-      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS}
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS},
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
     ],
   );
 
@@ -662,7 +681,8 @@ sub _axis {
       $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0},
       -tags => [
         $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis0},
-        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS}
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS},
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
       ],
     );
   }
@@ -730,7 +750,8 @@ sub _xtick {
         $Xtickx1, $Xticky1, $Xtickx2, $Xticky2,
         -tags => [
           $CompositeWidget->{RefInfoDummies}->{TAGS}{xTick},
-          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick}
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
         ],
       );
       if (  defined $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{SpaceBetweenTick}
@@ -752,7 +773,8 @@ sub _xtick {
         -fill => $xvaluecolor,
         -tags => [
           $CompositeWidget->{RefInfoDummies}->{TAGS}{xValues},
-          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllValues}
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllValues},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
         ],
 
         #        %option,
@@ -860,40 +882,77 @@ MESSAGE
 
       # D9
       $CompositeWidget->createLine(
-        $x0, $yLnonOutlier, $x, $yLnonOutlier,
-        -tags  => [ $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+        $x0,
+        $yLnonOutlier,
+        $x,
+        $yLnonOutlier,
+        -tags => [
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+        ],
         -width => $CompositeWidget->cget( -linewidth ),
       );
       $CompositeWidget->createLine(
-        $xc, $yLnonOutlier, $xc, $yQuantile3,
-        -tags  => [ $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+        $xc,
+        $yLnonOutlier,
+        $xc,
+        $yQuantile3,
+        -tags => [
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+        ],
         -width => $CompositeWidget->cget( -linewidth ),
       );
 
       # D1
       $CompositeWidget->createLine(
-        $x0, $ySnonOutlier, $x, $ySnonOutlier,
-        -tags  => [ $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+        $x0,
+        $ySnonOutlier,
+        $x,
+        $ySnonOutlier,
+        -tags => [
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+        ],
         -width => $CompositeWidget->cget( -linewidth ),
       );
       $CompositeWidget->createLine(
-        $xc, $ySnonOutlier, $xc, $yQuantile1,
-        -tags  => [ $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+        $xc,
+        $ySnonOutlier,
+        $xc,
+        $yQuantile1,
+        -tags => [
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+        ],
         -width => $CompositeWidget->cget( -linewidth ),
       );
 
       # box : median
       $CompositeWidget->createRectangle(
-        $x0, $yQuantile1, $x, $yQuantile3,
-        -tags => [ $tag2, $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+        $x0,
+        $yQuantile1,
+        $x,
+        $yQuantile3,
+        -tags => [
+          $tag2, $tag,
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+        ],
         -width => $CompositeWidget->cget( -linewidth ),
         -fill  => $LineColor,
       );
 
       # Q2 : median
       $CompositeWidget->createLine(
-        $x0, $yQuantile2, $x, $yQuantile2,
-        -tags  => [ $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+        $x0,
+        $yQuantile2,
+        $x,
+        $yQuantile2,
+        -tags => [
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+        ],
         -width => $CompositeWidget->cget( -linewidth ),
       );
 
@@ -904,7 +963,10 @@ MESSAGE
         pixel  => 6,
         type   => 'horizontal cross',
         option => {
-          -tags  => [ $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+          -tags => [
+            $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData},
+            $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+          ],
           -width => $CompositeWidget->cget( -linewidth ),
         },
       );
@@ -922,7 +984,11 @@ MESSAGE
             pixel  => 6,
             type   => 'diagonal cross',
             option => {
-              -tags => [ $OutlierTag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+              -tags => [
+                $OutlierTag,
+                $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData},
+                $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+              ],
               -width => $CompositeWidget->cget( -linewidth ),
             },
           );
@@ -932,7 +998,11 @@ MESSAGE
             pixel  => 6,
             type   => 'horizontal cross',
             option => {
-              -tags => [ $OutlierTag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData} ],
+              -tags => [
+                $OutlierTag,
+                $CompositeWidget->{RefInfoDummies}->{TAGS}{AllData},
+                $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+              ],
               -width => $CompositeWidget->cget( -linewidth ),
             },
           );
@@ -1106,6 +1176,8 @@ Tk::ForDummies::Graph::Boxplots is an extension of the Canvas widget. It is an e
 interactive boxplots (also known as a B<box-and-whisker diagram> or B<plot>) 
 graph into your Perl Tk widget. The module is written entirely in Perl/Tk.
 
+You can set a background gradient color.
+
 You can change the color, font of title, labels (x and y) of the graph.
 You can set an interactive legend.  
 The axes can be automatically scaled or set by the code. 
@@ -1114,6 +1186,22 @@ When the mouse cursor passes over a boxplot, its outlier or its entry in the leg
 the boxplot and its entry will be turned to a color (that you can change) to help identify it. 
 
 You can use 3 methods to zoom (vertically, horizontally or both).
+
+=head1 BACKGROUND GRADIENT COLOR
+
+You can set a background gradient color by using all methods of L<Tk::Canvas::GradientColor>. By 
+default, it is not enabled.
+
+To enabled background gradient color the first time, you firstly have to call B<enabled_gradientcolor> method and configure 
+your color and type of gradient with B<set_gradientcolor>.
+
+  $GraphDummies->enabled_gradientcolor();
+  $GraphDummies->set_gradientcolor(
+      -start_color => '#6585ED',
+      -end_color   => '#FFFFFF',
+  );
+
+Please, read L<Tk::Canvas::GradientColor/"WIDGET-SPECIFIC METHODS"> documentation to know all available configurations.
 
 =head1 STANDARD OPTIONS
 

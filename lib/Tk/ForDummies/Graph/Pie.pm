@@ -7,14 +7,14 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 21/05/2010 22:29:01
+# Update    : 19/06/2010 22:46:48
 # AIM       : Create pie graph
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.06';
+$VERSION = '1.07';
 
-use base qw/Tk::Derived Tk::Canvas/;
+use base qw/Tk::Derived Tk::Canvas::GradientColor/;
 use Tk::Balloon;
 
 use Tk::ForDummies::Graph::Utils qw (:DUMMIES);
@@ -30,7 +30,16 @@ sub Populate {
   $CompositeWidget->{RefInfoDummies} = $CompositeWidget->_InitConfig();
 
   $CompositeWidget->SUPER::Populate($RefParameters);
-  $CompositeWidget->Advertise( 'canvas' => $CompositeWidget );
+
+  $CompositeWidget->Advertise( 'GradientColor' => $CompositeWidget );
+  $CompositeWidget->Advertise( 'canvas'        => $CompositeWidget->SUPER::Canvas );
+  $CompositeWidget->Advertise( 'Canvas'        => $CompositeWidget->SUPER::Canvas );
+
+  # remove highlightthickness if necessary
+  unless ( exists $RefParameters->{-highlightthickness} ) {
+    $CompositeWidget->configure( -highlightthickness => 0 );
+  }
+
   $CompositeWidget->ConfigSpecs(
     -title      => [ 'PASSIVE', 'Title',      'Title',      undef ],
     -titlecolor => [ 'PASSIVE', 'Titlecolor', 'TitleColor', 'black' ],
@@ -50,6 +59,7 @@ sub Populate {
 
   # recreate graph after widget resize
   $CompositeWidget->enabled_automatic_redraw();
+  $CompositeWidget->disabled_gradientcolor();
 }
 
 sub plot {
@@ -240,7 +250,7 @@ sub _ViewData {
       -extent => $degrees,
       -fill   => $Color,
       -start  => $start,
-      -tags   => [$tag],
+      -tags   => [ $tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
       -width  => $CompositeWidget->cget( -linewidth ),
     );
 
@@ -406,7 +416,7 @@ sub _ViewLegend {
         $x1Cube, $y1Cube, $x2Cube, $y2Cube,
         -fill    => $LineColor,
         -outline => $LineColor,
-        -tags    => $Tag,
+        -tags    => [ $Tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
       );
 
       # Cut legend text if too long
@@ -422,7 +432,7 @@ sub _ViewLegend {
         $xText, $yText,
         -text   => $NewLegend,
         -anchor => 'nw',
-        -tags   => $Tag,
+        -tags   => [ $Tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
       );
 
       $IndexColor++;
@@ -493,10 +503,28 @@ Tk::ForDummies::Graph::Pie - Extension of Canvas widget to create a pie graph.
 Tk::ForDummies::Graph::Pie is an extension of the Canvas widget. It is an easy way to build an 
 interactive pie graph into your Perl Tk widget. The module is written entirely in Perl/Tk.
 
+You can set a background gradient color.
+
 When the mouse cursor passes over a pie slice or its entry in the legend, 
 the pie slice turn to a color (that you can change) and a balloon box display to help identify it. 
 
 You can use 3 methods to zoom (vertically, horizontally or both).
+
+=head1 BACKGROUND GRADIENT COLOR
+
+You can set a background gradient color by using all methods of L<Tk::Canvas::GradientColor>. By 
+default, it is not enabled.
+
+To enabled background gradient color the first time, you firstly have to call B<enabled_gradientcolor> method and configure 
+your color and type of gradient with B<set_gradientcolor>.
+
+  $GraphDummies->enabled_gradientcolor();
+  $GraphDummies->set_gradientcolor(
+      -start_color => '#6585ED',
+      -end_color   => '#FFFFFF',
+  );
+
+Please, read L<Tk::Canvas::GradientColor/"WIDGET-SPECIFIC METHODS"> documentation to know all available configurations.
 
 =head1 SYNOPSIS
 

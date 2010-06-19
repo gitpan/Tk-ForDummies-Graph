@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph::Utils;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 22/05/2010 19:11:40
+# Update    : 04/06/2010 21:28:09
 # AIM       : Private functions and public shared methods
 #             between Tk::ForDummies::Graph modules
 #==================================================================
@@ -12,7 +12,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = '1.07';
+$VERSION = '1.08';
 
 use Exporter;
 use POSIX qw / floor /;
@@ -381,7 +381,7 @@ sub clearchart {
   my ($CompositeWidget) = @_;
 
   $CompositeWidget->update;
-  $CompositeWidget->delete('all');
+  $CompositeWidget->delete( $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph} );
 
   return;
 }
@@ -421,7 +421,12 @@ sub display_values {
 
 sub enabled_automatic_redraw {
   my ($CompositeWidget) = @_;
-
+  
+  my $class = $CompositeWidget->class;
+  foreach my $key ( qw{ Down End Home Left Next Prior Right Up } ) {
+    $CompositeWidget->Tk::bind("Tk::ForDummies::Graph::$class", "<Key-$key>",         undef);
+    $CompositeWidget->Tk::bind("Tk::ForDummies::Graph::$class", "<Control-Key-$key>", undef);
+  }
   # recreate graph after widget resize
   $CompositeWidget->Tk::bind( '<Configure>' => sub { $CompositeWidget->_GraphForDummiesConstruction; } );
   return;
@@ -430,6 +435,11 @@ sub enabled_automatic_redraw {
 sub disabled_automatic_redraw {
   my ($CompositeWidget) = @_;
 
+  my $class = $CompositeWidget->class;
+  foreach my $key ( qw{ Down End Home Left Next Prior Right Up } ) {
+    $CompositeWidget->Tk::bind("Tk::ForDummies::Graph::$class", "<Key-$key>",         undef);
+    $CompositeWidget->Tk::bind("Tk::ForDummies::Graph::$class", "<Control-Key-$key>", undef);
+  }
   # recreate graph after widget resize
   $CompositeWidget->Tk::bind( '<Configure>' => undef );
   return;

@@ -1,7 +1,7 @@
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 22/05/2010 00:37:27
+# Update    : 20/06/2010 00:24:19
 # AIM       : Tk::ForDummies::Graph TODO
 #==================================================================
 
@@ -10,3 +10,4 @@ For the moment, the quantile is calculated with the same algorithm as Excel and 
 
 Create Tk::ForDummies::Graph::HBars
 
+Add an -cumulate_area option for area graph.

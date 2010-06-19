@@ -7,14 +7,14 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 22/05/2010 19:12:35
+# Update    : 19/06/2010 22:47:03
 # AIM       : Create Mixed graph
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.02';
+$VERSION = '1.03';
 
-use base qw/Tk::Derived Tk::Canvas/;
+use base qw/Tk::Derived Tk::Canvas::GradientColor/;
 use Tk::Balloon;
 
 use Tk::ForDummies::Graph::Utils qw ( :DUMMIES :DISPLAY );
@@ -31,7 +31,14 @@ sub Populate {
 
   $CompositeWidget->SUPER::Populate($RefParameters);
 
-  $CompositeWidget->Advertise( 'canvas' => $CompositeWidget );
+  $CompositeWidget->Advertise( 'GradientColor' => $CompositeWidget );
+  $CompositeWidget->Advertise( 'canvas'        => $CompositeWidget->SUPER::Canvas );
+  $CompositeWidget->Advertise( 'Canvas'        => $CompositeWidget->SUPER::Canvas );
+
+  # remove highlightthickness if necessary
+  unless ( exists $RefParameters->{-highlightthickness} ) {
+    $CompositeWidget->configure( -highlightthickness => 0 );
+  }
 
   $CompositeWidget->ConfigSpecs(
     -title      => [ 'PASSIVE', 'Title',      'Title',      undef ],
@@ -133,6 +140,7 @@ sub Populate {
 
   # recreate graph after widget resize
   $CompositeWidget->enabled_automatic_redraw();
+  $CompositeWidget->disabled_gradientcolor();
 }
 
 sub _Balloon {
@@ -425,13 +433,17 @@ sub _ViewLegend {
       + $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{xlabelHeight};
 
     $CompositeWidget->createText(
-      $xLegendTitle, $yLegendTitle,
+      $xLegendTitle,
+      $yLegendTitle,
       -text   => $LegendTitle,
       -anchor => 'nw',
       -font   => $titlefont,
       -fill   => $titlecolor,
       -width  => $CompositeWidget->{RefInfoDummies}->{Axis}{Xaxis}{Width},
-      -tags   => $CompositeWidget->{RefInfoDummies}->{TAGS}{TitleLegend},
+      -tags   => [
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{TitleLegend},
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+      ],
     );
   }
 
@@ -497,7 +509,7 @@ sub _ViewLegend {
           -fill  => $LineColor,
           -width => 4,
           -dash  => $dashline,
-          -tags  => $Tag,
+          -tags  => [ $Tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
         );
       }
       elsif ( $MarkerType eq 'points' ) {
@@ -518,7 +530,7 @@ sub _ViewLegend {
         }
         my $x = $x1Cube + ( ( $x2Cube - $x1Cube ) / 2 );
         my $y = $y1Cube + ( ( $y2Cube - $y1Cube ) / 2 );
-        $Option{-tags} = $Tag;
+        $Option{-tags} = [ $Tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ];
         $CompositeWidget->_CreateType(
           x      => $x,
           y      => $y,
@@ -533,7 +545,7 @@ sub _ViewLegend {
           $x1Cube, $y1Cube, $x2Cube, $y2Cube,
           -fill    => $LineColor,
           -outline => $LineColor,
-          -tags    => $Tag,
+          -tags    => [ $Tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
         );
       }
 
@@ -541,7 +553,7 @@ sub _ViewLegend {
         $xText, $yText,
         -text   => $NewLegend,
         -anchor => 'nw',
-        -tags   => $Tag,
+        -tags   => [ $Tag, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
       );
       if ($legendfont) {
         $CompositeWidget->itemconfigure( $Id, -font => $legendfont, );
@@ -582,8 +594,13 @@ sub _ViewLegend {
     $x2Box = $InfoLegendTitle[2] + 2;
   }
   my $y2Box = $y1Box + $CompositeWidget->{RefInfoDummies}->{Legend}{Height};
-  $CompositeWidget->createRectangle( $x1Box, $y1Box, $x2Box, $y2Box,
-    -tags => $CompositeWidget->{RefInfoDummies}->{TAGS}{BoxLegend}, );
+  $CompositeWidget->createRectangle(
+    $x1Box, $y1Box, $x2Box, $y2Box,
+    -tags => [
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{BoxLegend},
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+    ],
+  );
 
   return;
 }
@@ -643,7 +660,8 @@ sub _axis {
     $CompositeWidget->{RefInfoDummies}->{Axis}{CyMax},
     -tags => [
       $CompositeWidget->{RefInfoDummies}->{TAGS}{yAxis},
-      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS}
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS},
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
     ],
   );
 
@@ -662,7 +680,8 @@ sub _axis {
     $CompositeWidget->{RefInfoDummies}->{Axis}{CyMin},
     -tags => [
       $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis},
-      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS}
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS},
+      $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
     ],
   );
 
@@ -698,7 +717,8 @@ sub _axis {
       $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0},
       -tags => [
         $CompositeWidget->{RefInfoDummies}->{TAGS}{xAxis0},
-        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS}
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllAXIS},
+        $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
       ],
     );
   }
@@ -766,7 +786,8 @@ sub _xtick {
         $Xtickx1, $Xticky1, $Xtickx2, $Xticky2,
         -tags => [
           $CompositeWidget->{RefInfoDummies}->{TAGS}{xTick},
-          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick}
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTick},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
         ],
       );
 
@@ -789,7 +810,8 @@ sub _xtick {
         -fill => $xvaluecolor,
         -tags => [
           $CompositeWidget->{RefInfoDummies}->{TAGS}{xValues},
-          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllValues}
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllValues},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
         ],
       );
     }
@@ -920,7 +942,7 @@ sub _ViewDataAreas {
   $CompositeWidget->createPolygon(
     @PointsData,
     -fill    => $LineColor,
-    -tags    => [ $tag, $tag2, $tag_area ],
+    -tags    => [ $tag, $tag2, $tag_area, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
     -width   => $CompositeWidget->cget( -linewidth ),
     -outline => $outlinearea,
   );
@@ -937,7 +959,11 @@ sub _ViewDataAreas {
         $DashPointsxLines[$IndexX2],
         $CompositeWidget->{RefInfoDummies}->{Axis}{Cy0},
         -dash => '.',
-        -tags => [ $tag, $tag_area, $CompositeWidget->{RefInfoDummies}->{TAGS}{DashLines}, ],
+        -tags => [
+          $tag, $tag_area,
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{DashLines},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+        ],
       );
       $i++;
     }
@@ -993,7 +1019,7 @@ sub _ViewDataPoints {
       = $CompositeWidget->{RefInfoDummies}->{Legend}{DataLegend}->[ $IdData - 1 ];
 
     my %Option = (
-      -tags  => [ $tag, $tag2, $tag_point ],
+      -tags => [ $tag, $tag2, $tag_point, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
       -width => $CompositeWidget->cget( -linewidth ),
     );
     my $RefType = $CompositeWidget->_GetMarkerType($NumMarker);
@@ -1112,16 +1138,21 @@ sub _ViewDataBars {
     $CompositeWidget->createRectangle(
       $x0, $y0, $x, $y,
       -fill    => $LineColor,
-      -tags    => [ $tag, $tag2, $tag_bar ],
+      -tags    => [ $tag, $tag2, $tag_bar, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
       -width   => $CompositeWidget->cget( -linewidth ),
       -outline => $outlinebar,
     );
     if ( $showvalues == 1 ) {
       $CompositeWidget->createText(
-        $x0 + ( $x - $x0 ) / 2, $y - 8,
+        $x0 + ( $x - $x0 ) / 2,
+        $y - 8,
         -text => $data,
         -font => $CompositeWidget->{RefInfoDummies}->{Font}{DefaultBarValues},
-        -tags => [ $tag, $tag_bar, $CompositeWidget->{RefInfoDummies}->{TAGS}{BarValues} ],
+        -tags => [
+          $tag, $tag_bar,
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{BarValues},
+          $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph},
+        ],
       );
     }
 
@@ -1186,7 +1217,7 @@ sub _ViewDataLines {
   $CompositeWidget->createLine(
     @PointsData,
     -fill   => $LineColor,
-    -tags   => [ $tag, $tag2, $tag_line ],
+    -tags   => [ $tag, $tag2, $tag_line, $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
     -width  => $CompositeWidget->cget( -linewidth ),
     -smooth => $bezier,
     -dash   => $dash,
@@ -1423,12 +1454,30 @@ Tk::ForDummies::Graph::Mixed - Extension of Canvas widget to create mixed graph.
 Tk::ForDummies::Graph::Mixed is an extension of the Canvas widget. It is an easy way to build an 
 interactive graph into your Perl Tk widget. The module is written entirely in Perl/Tk.
 
+You can set a background gradient color.
+
 In the same graph, you can create lines, bars, areas, line points, points.
 You can change the color, font of title, labels (x and y) of the graph.
 You can set an interactive legend.  
 The axes can be automatically scaled or set by the code. 
 
 You can use 3 methods to zoom (vertically, horizontally or both).
+
+=head1 BACKGROUND GRADIENT COLOR
+
+You can set a background gradient color by using all methods of L<Tk::Canvas::GradientColor>. By 
+default, it is not enabled.
+
+To enabled background gradient color the first time, you firstly have to call B<enabled_gradientcolor> method and configure 
+your color and type of gradient with B<set_gradientcolor>.
+
+  $GraphDummies->enabled_gradientcolor();
+  $GraphDummies->set_gradientcolor(
+      -start_color => '#6585ED',
+      -end_color   => '#FFFFFF',
+  );
+
+Please, read L<Tk::Canvas::GradientColor/"WIDGET-SPECIFIC METHODS"> documentation to know all available configurations.
 
 =head1 STANDARD OPTIONS
 
@@ -2185,7 +2234,7 @@ When the graph is created and the widget size changes, the graph is automaticall
 
 Manage the display order of the various graphs.
 
-  $GraphDummies->display_order( [qw/ areas bars lines  dashlines points /] );
+  $GraphDummies->display_order( [qw/ areas bars lines dashlines points /] );
 
 In this example, the area will be in the background, followed by bars, lines, dashlines and points. 
 
