@@ -1,5 +1,8 @@
 Revision history for Tk-ForDummies-Graph
 
+1.14 22/10/2010 00:12:09
+  DEPRECATED - now use Tk::Chart
+   
 1.13 19/06/2010 22:22:23
   Tk-ForDummies-Graph is now an extension of Tk::Canvas::GradientColor which allow you to 
   to set a gradient background color in your graph. Then, you can use all methods of this module.

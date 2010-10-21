@@ -1389,7 +1389,11 @@ __END__
 
 =head1 NAME
 
-Tk::ForDummies::Graph::Mixed - Extension of Canvas widget to create mixed graph. 
+Tk::ForDummies::Graph::Mixed - DEPRECATED : now use Tk::Chart. 
+
+=head1 DEPRECATED
+
+DEPRECATED : please does not use this module, but use now L<Tk::Chart>.
 
 =head1 SYNOPSIS
 

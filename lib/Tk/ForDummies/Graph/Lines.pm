@@ -1026,7 +1026,11 @@ __END__
 
 =head1 NAME
 
-Tk::ForDummies::Graph::Lines - Extension of Canvas widget to create a line graph. 
+Tk::ForDummies::Graph::Lines - DEPRECATED : now use Tk::Chart.
+
+=head1 DEPRECATED
+
+DEPRECATED : please does not use this module, but use now L<Tk::Chart>.
 
 =head1 SYNOPSIS
 

@@ -1,10 +1,10 @@
 =head1 NAME
 
-Tk::ForDummies::Graph::Splines - To create lines graph as BE<eacute>zier curve. 
+Tk::ForDummies::Graph::Splines - DEPRECATED : now use Tk::Chart.
 
 =head1 SYNOPSIS
 
-Do not use this module. Use L<Tk::ForDummies::Graph::Lines>.
+DEPRECATED : please does not use this module, but use now L<Tk::Chart>.
 
 =head1 DESCRIPTION
 

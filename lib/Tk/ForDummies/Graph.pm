@@ -3,7 +3,7 @@ package Tk::ForDummies::Graph;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 04/06/2010 21:27:58
+# Update    : 20/09/2010 20:45:57
 # AIM       : Private functions for Dummies Graph modules
 #==================================================================
 use strict;
@@ -11,7 +11,7 @@ use warnings;
 use Carp;
 use Tk::ForDummies::Graph::Utils qw (:DUMMIES);
 use vars qw($VERSION);
-$VERSION = '1.13';
+$VERSION = '1.14';
 
 use Exporter;
 
@@ -1066,11 +1066,11 @@ __END__
 
 =head1 NAME
 
-Tk::ForDummies::Graph - Extension of Canvas widget to create a graph like GDGraph. 
+Tk::ForDummies::Graph - DEPRECATED : now use Tk::Chart. 
 
 =head1 SYNOPSIS
 
-use Tk::ForDummies::Graph::B<ModuleName>;
+DEPRECATED : please does not use this module, but use now L<Tk::Chart>.
 
 =head1 DESCRIPTION
 

@@ -7,12 +7,12 @@ use Carp;
 #==================================================================
 # Author    : Djibril Ousmanou
 # Copyright : 2010
-# Update    : 19/06/2010 22:46:48
+# Update    : 20/09/2010 20:45:26
 # AIM       : Create pie graph
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.07';
+$VERSION = '1.08';
 
 use base qw/Tk::Derived Tk::Canvas::GradientColor/;
 use Tk::Balloon;
@@ -148,6 +148,7 @@ sub _titlepie {
     -text   => $Title,
     -width  => $CompositeWidget->{RefInfoDummies}->{Pie}{Width},
     -anchor => $anchor,
+    -tags   => [ $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
   );
   return if ( $anchor =~ m{^left|right$} );
 
@@ -181,7 +182,7 @@ sub _titlepie {
       -text   => $Title,
       -width  => $CompositeWidget->{RefInfoDummies}->{Title}{'-width'},
       -anchor => 'nw',
-
+      -tags   => [ $CompositeWidget->{RefInfoDummies}->{TAGS}{AllTagsDummiesGraph}, ],
     );
   }
 
@@ -496,7 +497,11 @@ __END__
 
 =head1 NAME
 
-Tk::ForDummies::Graph::Pie - Extension of Canvas widget to create a pie graph. 
+Tk::ForDummies::Graph::Pie - DEPRECATED : now use Tk::Chart.
+
+=head1 DEPRECATED
+
+DEPRECATED : please does not use this module, but use now L<Tk::Chart>.
 
 =head1 DESCRIPTION
 

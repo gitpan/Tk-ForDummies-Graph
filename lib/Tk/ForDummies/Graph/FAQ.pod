@@ -1,11 +1,14 @@
 =head1 NAME
 
-Tk::ForDummies::Graph::FAQ - Frequently Asked Questions about Tk::ForDummies::Graph.
+Tk::ForDummies::Graph::FAQ - DEPRECATED : now use Tk::Chart.
+
+=head1 DEPRECATED
+
+DEPRECATED : please does not use this module, but use now L<Tk::Chart>.
 
 =head1 SYNOPSIS
 
 This is the Frequently Asked Questions list for Tk::ForDummies::Graph. 
-
 
 =head1 DESCRIPTION
 

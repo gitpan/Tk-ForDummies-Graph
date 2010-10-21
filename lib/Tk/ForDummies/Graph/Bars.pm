@@ -964,7 +964,11 @@ __END__
 
 =head1 NAME
 
-Tk::ForDummies::Graph::Bars - Extension of Canvas widget to create bars graph. 
+Tk::ForDummies::Graph::Bars - DEPRECATED : now use Tk::Chart.
+
+=head1 DEPRECATED
+
+DEPRECATED : please does not use this module, but use now L<Tk::Chart>.
 
 =head1 SYNOPSIS
 

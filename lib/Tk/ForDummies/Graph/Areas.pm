@@ -12,7 +12,7 @@ use Carp;
 #==================================================================
 
 use vars qw($VERSION);
-$VERSION = '1.09';
+$VERSION = '1.10';
 
 use base qw/Tk::Derived Tk::Canvas::GradientColor/;
 use Tk::Balloon;
@@ -908,7 +908,11 @@ __END__
 
 =head1 NAME
 
-Tk::ForDummies::Graph::Areas - Extension of Canvas widget to create area lines graph. 
+Tk::ForDummies::Graph::Areas - DEPRECATED : now use Tk::Chart.
+
+=head1 DEPRECATED
+
+DEPRECATED : please does not use this module, but use now L<Tk::Chart>.
 
 =head1 SYNOPSIS
 
